@@ -70,28 +70,20 @@ class TableDataset(Dataset):
                     sep="|",
                     engine="python",
                     quotechar='"',
-                    on_bad_lines="warn"
+                    on_bad_lines="warn",
+                    nrows=num_rows if num_rows is not None else None
                 )
-
-                # For now using subset for time optimization
-                if num_rows is not None:
-                    df_list.append(df[:num_rows])
-                else:
-                    df_list.append(df)
+                df_list.append(df)
         elif split == "valid":
             df = pd.read_csv(
                 data_dir + f"data_{num_chunks - 1}.csv",
                 sep="|",
                 engine="python",
                 quotechar='"',
-                on_bad_lines="warn"
+                on_bad_lines="warn",
+                nrows=num_rows if num_rows is not None else None
             )
-
-            # For now using subset for time optimization
-            if num_rows is not None:
-                df_list.append(df[:num_rows])
-            else:
-                df_list.append(df)
+            df_list.append(df)
         else:
             raise ValueError("split value could be [train | valid]")
         return pd.concat(df_list, axis=0)
