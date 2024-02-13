@@ -1,11 +1,10 @@
 import torch
 
+from dataset.dataloader import CtaDataLoader
 from dataset.dataset import TableDataset
 from model.model import BertForClassification
 
 from transformers import BertTokenizer, BertConfig
-
-from torch.utils.data import DataLoader, RandomSampler
 
 import matplotlib.pyplot as plt
 
@@ -27,27 +26,23 @@ def collate(samples):
 
 
 def train(batch_size: int = 2):
-    train_dataset = TableDataset(split="train")
-    train_dataloader = DataLoader(
-        train_dataset,
-        sampler=RandomSampler(train_dataset),
+    dataset = TableDataset()
+    train_dataloader = CtaDataLoader(
+        dataset,
+        num_workers=0,
+        split=0.2,
         batch_size=batch_size,
         collate_fn=collate
     )
 
-    valid_dataset = TableDataset(split="valid")
-    valid_dataloader = DataLoader(
-        valid_dataset,
-        batch_size=batch_size,
-        collate_fn=collate
-    )
+    valid_dataloader = train_dataloader.get_valid_dataloader()
 
     # ---- params ----
     # shortcut_name = "bert-base-uncased"
     shortcut_name = "bert-base-multilingual-uncased"
     device = "cpu"
     n_labels = 339
-    num_epochs = 10
+    num_epochs = 4
 
     # ---- bert ----
     config = BertConfig.from_pretrained(shortcut_name, num_labels=n_labels)
@@ -91,6 +86,8 @@ def train(batch_size: int = 2):
             optimizer.step()
             # model.zero_grad with set_to_none is more efficient
             model.zero_grad(set_to_none=True)
+
+            # TODO: add f1
         train_losses.append(train_loss / batch_size)
 
         # Validation
@@ -122,6 +119,7 @@ def train(batch_size: int = 2):
 
                 loss = loss_fn(cls_probs, y)
                 valid_loss += loss.item()
+                # TODO: add f1 
         valid_losses.append(valid_loss / batch_size)
     return train_losses, valid_losses
 

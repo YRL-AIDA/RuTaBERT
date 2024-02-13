@@ -20,14 +20,13 @@ class TableDataset(Dataset):
 
     def __init__(
             self,
-            split: str = "train",
+            data_dir: str = "../data/",
+            tokenizer=BertTokenizer.from_pretrained("bert-base-multilingual-uncased"),
             transform=None,
             target_transform=None,
-            data_dir: str = "../data/",
-            tokenizer=BertTokenizer.from_pretrained("bert-base-uncased")
     ):
         # Read dataset .csv files from ../data/ dir:
-        df = TableDataset.read_multiple_csv(data_dir, split, 1)
+        df = TableDataset.read_multiple_csv(data_dir, 1)
 
         # Tokenize dataset with BERT tokenizer
         data_list = TableDataset._create_dataset(
@@ -53,7 +52,7 @@ class TableDataset(Dataset):
         }
 
     @staticmethod
-    def read_multiple_csv(data_dir: str, split: str, num_rows: Optional[int] = None) -> pd.DataFrame:
+    def read_multiple_csv(data_dir: str, num_rows: Optional[int] = None) -> pd.DataFrame:
         """
         TODO
         :return:
@@ -61,22 +60,9 @@ class TableDataset(Dataset):
 
         df_list = []
         num_chunks = len(glob.glob(data_dir + "data_*.csv"))
-
-        # TODO: do it more wise)
-        if split == "train":
-            for i in range(num_chunks - 1):
-                df = pd.read_csv(
-                    data_dir + f"data_{i}.csv",
-                    sep="|",
-                    engine="python",
-                    quotechar='"',
-                    on_bad_lines="warn",
-                    nrows=num_rows if num_rows is not None else None
-                )
-                df_list.append(df)
-        elif split == "valid":
+        for i in range(num_chunks):
             df = pd.read_csv(
-                data_dir + f"data_{num_chunks - 1}.csv",
+                data_dir + f"data_{i}.csv",
                 sep="|",
                 engine="python",
                 quotechar='"',
@@ -84,8 +70,6 @@ class TableDataset(Dataset):
                 nrows=num_rows if num_rows is not None else None
             )
             df_list.append(df)
-        else:
-            raise ValueError("split value could be [train | valid]")
         return pd.concat(df_list, axis=0)
 
     @staticmethod
@@ -116,6 +100,7 @@ class TableDataset(Dataset):
             # Use Long, because CrossEntropyLoss works with Long tensors.
             labels = torch.LongTensor(table["label_id"].values)
 
+            # TODO: create df here and return it
             data_list.append(
                 [index, num_cols, tokenized_columns_seq, labels]
             )
