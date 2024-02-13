@@ -29,14 +29,9 @@ class TableDataset(Dataset):
         df = TableDataset.read_multiple_csv(data_dir, 1)
 
         # Tokenize dataset with BERT tokenizer
-        data_list = TableDataset._create_dataset(
+        self.df = TableDataset._create_dataset(
             df,
             tokenizer
-        )
-        # Assign tokenized dataset
-        self.df = pd.DataFrame(
-            data_list,
-            columns=["table_id", "n_cols", "data", "labels"]
         )
 
         self.transform = transform
@@ -73,17 +68,18 @@ class TableDataset(Dataset):
         return pd.concat(df_list, axis=0)
 
     @staticmethod
-    def _create_dataset(df: pd.DataFrame, tokenizer: PreTrainedTokenizerBase) -> list:
+    def _create_dataset(df: pd.DataFrame, tokenizer: PreTrainedTokenizerBase) -> pd.DataFrame:
         """
         TODO
         :return:
         """
 
         data_list = []
-        for index, table in tqdm(df.groupby("table_id")):
+        for table_id, table in tqdm(df.groupby("table_id")):
             num_cols = len(table)
 
             # Tokenize table columns
+            # TODO: move to collate, do it in a batch?
             tokenized_table_columns = table["column_data"].apply(
                 lambda x: tokenizer.encode(
                     # TODO: what if column is almost empty? then we reduce max_length for other columns.
@@ -100,11 +96,14 @@ class TableDataset(Dataset):
             # Use Long, because CrossEntropyLoss works with Long tensors.
             labels = torch.LongTensor(table["label_id"].values)
 
-            # TODO: create df here and return it
             data_list.append(
-                [index, num_cols, tokenized_columns_seq, labels]
+                [table_id, num_cols, tokenized_columns_seq, labels]
             )
-        return data_list
+
+        return pd.DataFrame(
+            data_list,
+            columns=["table_id", "n_cols", "data", "labels"]
+        )
 
 
 if __name__ == "__main__":
