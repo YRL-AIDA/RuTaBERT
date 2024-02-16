@@ -1,0 +1,12 @@
+{
+  "num_labels": 339,
+  "model_config": "bert-base-multilingual-uncased",
+  "num_epochs": 4,
+  "random_state": 2024,
+  "dataloader": {
+    "valid_split": 0.2
+  },
+  "dataset": {
+    "num_rows": 1
+  }
+}
