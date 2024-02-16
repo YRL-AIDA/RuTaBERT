@@ -53,6 +53,9 @@ def train(batch_size: int = 2):
     optimizer = torch.optim.AdamW(model.parameters())
     # TODO: scheduler
 
+    train_metrics = []
+    valid_metrics = []
+
     train_losses = []
     valid_losses = []
 
@@ -101,6 +104,7 @@ def train(batch_size: int = 2):
         # --- Metrics ---
         train_f1_micro, train_f1_macro, train_f1_weighted = multiple_f1_score(train_logits, train_targets)
         print(f"micro: {train_f1_micro} \nmacro: {train_f1_macro} \nweighted: {train_f1_weighted}")
+        train_metrics.append(train_f1_weighted)
 
         # --- Validation ---
         model.eval()
@@ -138,14 +142,21 @@ def train(batch_size: int = 2):
         # --- F1 Metrics ---
         valid_f1_micro, valid_f1_macro, valid_f1_weighted = multiple_f1_score(valid_logits, valid_targets)
         print(f"valid_micro: {valid_f1_micro} \nvalid_macro: {valid_f1_macro} \nvalid_weighted: {valid_f1_weighted}")
+        valid_metrics.append(valid_f1_weighted)
 
         valid_losses.append(valid_loss / batch_size)
-    return train_losses, valid_losses
+    return train_losses, valid_losses, train_metrics, valid_metrics
 
 
 if __name__ == "__main__":
-    tr_loss, vl_loss = train()
+    tr_loss, vl_loss, tr_f1, vl_f1 = train()
+
     plt.plot(tr_loss)
     plt.plot(vl_loss)
     plt.legend(['Train loss', 'Valid loss'])
+    plt.show()
+
+    plt.plot(tr_f1)
+    plt.plot(vl_f1)
+    plt.legend(['Train f1 weighted', 'Valid f1 weighted'])
     plt.show()
