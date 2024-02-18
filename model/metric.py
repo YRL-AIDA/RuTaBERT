@@ -3,11 +3,11 @@ from torch import Tensor
 from torcheval.metrics.functional import multiclass_f1_score
 
 
-def multiple_f1_score(output, target) -> tuple[Tensor, Tensor, Tensor]:
+def multiple_f1_score(output: list, target: list) -> tuple[Tensor, Tensor, Tensor]:
     """TODO"""
     # TODO: memory cpy here, may be bad.
-    logits_tensor = torch.flatten(torch.tensor(output))
-    targets_tensor = torch.flatten(torch.tensor(target))
+    logits_tensor = torch.tensor(output)
+    targets_tensor = torch.tensor(target)
     f1_micro = multiclass_f1_score(
         logits_tensor,
         targets_tensor,
