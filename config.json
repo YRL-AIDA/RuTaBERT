@@ -1,12 +1,16 @@
 {
   "num_labels": 339,
-  "model_config": "bert-base-multilingual-uncased",
+  "start_from_checkpoint": false,
+  "pretrained_model_name": "bert-base-multilingual-uncased",
+  "batch_size": 2,
   "num_epochs": 4,
-  "random_state": 2024,
+  "random_seed": 2024,
   "dataloader": {
-    "valid_split": 0.2
+    "valid_split": 0.2,
+    "num_workers": 0
   },
   "dataset": {
-    "num_rows": 1
+    "num_rows": 1,
+    "data_dir": "../data/"
   }
 }

@@ -11,6 +11,8 @@ from transformers import BertTokenizer, BertConfig
 
 import matplotlib.pyplot as plt
 
+from config import Config
+
 
 def collate(samples):
     """
@@ -28,28 +30,36 @@ def collate(samples):
     return batch
 
 
-def train(batch_size: int = 2, start_from_checkpoint: bool = False):
-    dataset = TableDataset()
+def train(config: Config):
+    # TODO: assert config variables assigned and correct
+    batch_size = config["batch_size"]
+    num_epochs = config["num_epochs"]
+    start_from_checkpoint = config["start_from_checkpoint"]
+    num_labels = config["num_labels"]
+
+    pretrained_model_name = config["pretrained_model_name"]
+    tokenizer = BertTokenizer.from_pretrained(pretrained_model_name)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    dataset = TableDataset(
+        tokenizer=tokenizer,
+        num_rows=config["dataset"]["num_rows"],
+        data_dir=config["dataset"]["data_dir"]
+    )
     train_dataloader = CtaDataLoader(
         dataset,
-        num_workers=0,
-        split=0.2,
         batch_size=batch_size,
+        num_workers=config["dataloader"]["num_workers"],
+        split=config["dataloader"]["valid_split"],
+        random_seed=config["random_seed"],
         collate_fn=collate
     )
     valid_dataloader = train_dataloader.get_valid_dataloader()
 
-    # ---- params ----
-    # shortcut_name = "bert-base-uncased"
-    shortcut_name = "bert-base-multilingual-uncased"
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    n_labels = 339
-    num_epochs = 4
-
-    # ---- bert ----
-    config = BertConfig.from_pretrained(shortcut_name, num_labels=n_labels)
-    model = BertForClassification(config)
-    tokenizer = BertTokenizer.from_pretrained(shortcut_name)
+    model = BertForClassification(
+        BertConfig.from_pretrained(pretrained_model_name, num_labels=num_labels)
+    )
 
     loss_fn = torch.nn.CrossEntropyLoss()
     # TODO: lr, args...
@@ -73,22 +83,23 @@ def train(batch_size: int = 2, start_from_checkpoint: bool = False):
     # --- load from checkpoint ---
     if start_from_checkpoint:
         checkpoint = torch.load("model_best_f1_weighted.pt")
-        model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        num_epochs = num_epochs - checkpoint['epoch']
-        best_f1_wighted = checkpoint['loss']
+        model.load_state_dict(checkpoint["model_state_dict"])
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        num_epochs = num_epochs - checkpoint["epoch"]
+        best_f1_wighted = checkpoint["loss"]
 
     for epoch in range(num_epochs):
         # Train
         model.train()
         train_loss = 0.0
         for batch in train_dataloader:
+            # TODO rename x y
             x = batch["data"].to(device)
             y = batch["labels"].to(device)
 
             logits, = model(x)
 
-            # TODO: move to collate
+            # TODO: move to collate; we cant, need logits to calculate this
             cls_indexes = torch.nonzero(
                 x == tokenizer.cls_token_id
             )
@@ -118,7 +129,8 @@ def train(batch_size: int = 2, start_from_checkpoint: bool = False):
         # --- Metrics ---
         train_f1_micro, train_f1_macro, train_f1_weighted = multiple_f1_score(
             list(itertools.chain.from_iterable(train_logits)),
-            list(itertools.chain.from_iterable(train_targets))
+            list(itertools.chain.from_iterable(train_targets)),
+            num_labels
         )
         print(f"micro: {train_f1_micro} \nmacro: {train_f1_macro} \nweighted: {train_f1_weighted}")
         train_metrics.append(train_f1_weighted)
@@ -128,6 +140,7 @@ def train(batch_size: int = 2, start_from_checkpoint: bool = False):
         valid_loss = 0.0
         with torch.no_grad():
             for batch in valid_dataloader:
+                # TODO rename x y
                 x = batch["data"].to(device)
                 y = batch["labels"].to(device)
 
@@ -136,7 +149,7 @@ def train(batch_size: int = 2, start_from_checkpoint: bool = False):
                 if type(probs) == tuple:
                     probs = probs[0]
 
-                # TODO: move to collate
+                # TODO: move to collate; we cant, need logits to calculate this
                 cls_indexes = torch.nonzero(
                     x == tokenizer.cls_token_id
                 )
@@ -159,7 +172,8 @@ def train(batch_size: int = 2, start_from_checkpoint: bool = False):
         # --- F1 Metrics ---
         valid_f1_micro, valid_f1_macro, valid_f1_weighted = multiple_f1_score(
             list(itertools.chain.from_iterable(valid_logits)),
-            list(itertools.chain.from_iterable(valid_targets))
+            list(itertools.chain.from_iterable(valid_targets)),
+            num_labels
         )
         print(f"valid_micro: {valid_f1_micro} \nvalid_macro: {valid_f1_macro} \nvalid_weighted: {valid_f1_weighted}")
         valid_metrics.append(valid_f1_weighted)
@@ -181,7 +195,7 @@ def train(batch_size: int = 2, start_from_checkpoint: bool = False):
 
 
 if __name__ == "__main__":
-    tr_loss, vl_loss, tr_f1, vl_f1 = train(start_from_checkpoint=False)
+    tr_loss, vl_loss, tr_f1, vl_f1 = train(Config(config_path="../config.json"))
 
     plt.plot(tr_loss)
     plt.plot(vl_loss)

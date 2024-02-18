@@ -56,11 +56,12 @@ class BertForClassification(BertPreTrainedModel):
 
 
 if __name__ == "__main__":
-    n_labels = 339
+    from config import Config
+
+    config = Config("../config.json")
     model = BertForClassification.from_pretrained(
-        # "bert-base-uncased",
         "bert-base-multilingual-uncased",
-        num_labels=n_labels,
+        num_labels=config["num_labels"],
         output_attentions=False,
         output_hidden_states=False,
     )

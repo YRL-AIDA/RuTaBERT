@@ -20,13 +20,14 @@ class TableDataset(Dataset):
 
     def __init__(
             self,
-            data_dir: str = "../data/",
-            tokenizer=BertTokenizer.from_pretrained("bert-base-multilingual-uncased"),
+            data_dir: str,
+            tokenizer: PreTrainedTokenizerBase,
+            num_rows: Optional[int],
             transform=None,
             target_transform=None,
     ):
         # Read dataset .csv files from ../data/ dir:
-        df = TableDataset.read_multiple_csv(data_dir, 1)
+        df = TableDataset.read_multiple_csv(data_dir, num_rows)
 
         # Tokenize dataset with BERT tokenizer
         self.df = TableDataset._create_dataset(
@@ -85,7 +86,7 @@ class TableDataset(Dataset):
                     # TODO: what if column is almost empty? then we reduce max_length for other columns.
                     # max_length for SINGLE COLUMN. Not for table as sequence.
                     # BERT maximum input length = 512. So, max_length = (512 // num_cols)
-                    x, add_special_tokens=True, max_length=(512 // num_cols), truncation=True
+                    x, add_special_tokens=True, max_length=(512 // num_cols), truncation=True  # TODO: config
                 )
             ).tolist()
 
@@ -107,4 +108,8 @@ class TableDataset(Dataset):
 
 
 if __name__ == "__main__":
-    t = TableDataset()
+    t = TableDataset(
+        data_dir="../data",
+        tokenizer=BertTokenizer.from_pretrained("bert-base-multilingual-uncased"),
+        num_rows=1,
+    )
