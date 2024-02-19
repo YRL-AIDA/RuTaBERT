@@ -16,7 +16,6 @@ class CtaDataLoader(DataLoader):
             dataset: TableDataset,
             batch_size: int,
             split: Union[float, int],
-            random_seed: int,
             num_workers: Optional[int] = 0,
             collate_fn: Optional[callable] = None
     ):
@@ -24,7 +23,6 @@ class CtaDataLoader(DataLoader):
         self.num_samples = len(dataset)
         self.shuffle = False
 
-        np.random.seed(random_seed)
         dataset_ids = np.arange(self.num_samples)
         np.random.shuffle(dataset_ids)
         if split == 0.0:
