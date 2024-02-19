@@ -58,10 +58,10 @@ class BertForClassification(BertPreTrainedModel):
 if __name__ == "__main__":
     from config import Config
 
-    config = Config("../config.json")
+    _config = Config("../config.json")
     model = BertForClassification.from_pretrained(
-        "bert-base-multilingual-uncased",
-        num_labels=config["num_labels"],
+        _config["pretrained_model_name"],
+        num_labels=_config["num_labels"],
         output_attentions=False,
         output_hidden_states=False,
     )
