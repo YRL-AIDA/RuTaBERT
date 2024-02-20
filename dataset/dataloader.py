@@ -15,7 +15,7 @@ class CtaDataLoader(DataLoader):
             self,
             dataset: TableDataset,
             batch_size: int,
-            split: Union[float, int],
+            split: Union[float, int] = 0.0,
             num_workers: Optional[int] = 0,
             collate_fn: Optional[callable] = None
     ):
