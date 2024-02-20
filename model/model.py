@@ -31,6 +31,7 @@ class BertForClassification(BertPreTrainedModel):
             inputs_embeds=None,
     ):
 
+        # TODO: pass attention mask? because seq may be padded
         outputs = self.bert(
             input_ids,
             attention_mask=attention_mask,
@@ -42,6 +43,7 @@ class BertForClassification(BertPreTrainedModel):
 
         last_hidden_state = outputs[0]  # (batch_size, seq_len, 768)
 
+        last_hidden_state = self.dropout(last_hidden_state)
         logits = self.classifier(last_hidden_state)  # (batch_size, seq_len, num_labels)
         outputs = (logits, ) + outputs[2:]
 
@@ -54,11 +56,12 @@ class BertForClassification(BertPreTrainedModel):
 
 
 if __name__ == "__main__":
-    n_labels = 339
+    from config import Config
+
+    _config = Config("../config.json")
     model = BertForClassification.from_pretrained(
-        # "bert-base-uncased",
-        "bert-base-multilingual-uncased",
-        num_labels=n_labels,
+        _config["pretrained_model_name"],
+        num_labels=_config["num_labels"],
         output_attentions=False,
         output_hidden_states=False,
     )
