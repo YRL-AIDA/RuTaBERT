@@ -1,12 +1,11 @@
-import itertools
 from typing import Optional
 
 import torch
-from torch import Tensor
 
 from datetime import datetime
 
 from logs.logger import Logger
+from utils.functions import get_token_logits
 
 
 class Trainer:
@@ -135,7 +134,7 @@ class Trainer:
             labels = batch["labels"].to(self.device)
 
             logits, = self.model(data)
-            cls_logits = self._get_token_logits(data, logits, self.tokenizer.cls_token_id)
+            cls_logits = get_token_logits(self.device, data, logits, self.tokenizer.cls_token_id)
 
             loss = self.loss_fn(cls_logits, labels)
             running_loss += loss.item()
@@ -150,30 +149,33 @@ class Trainer:
 
         return {
             "loss": running_loss / self.batch_size,
-            "metrics": Trainer.get_epoch_metrics(_logits, _targets, self.num_labels, self.metric_fn)
+            "metrics": self.metric_fn(_logits, _targets, self.num_labels)
         }
 
-    def _get_token_logits(self, data: Tensor, logits: Tensor, token_id: int) -> Tensor:
-        token_indexes = torch.nonzero(data == token_id)
-        token_logits = torch.zeros(
-            token_indexes.shape[0],
-            logits.shape[2]
-        ).to(self.device)
+    # @staticmethod
+    # def get_token_logits(device, data: Tensor, logits: Tensor, token_id: int) -> Tensor:
+    #     """TODO: move to functions?"""
+    #     token_indexes = torch.nonzero(data == token_id)
+    #     token_logits = torch.zeros(
+    #         token_indexes.shape[0],
+    #         logits.shape[2]
+    #     ).to(device)
+    #
+    #     for i in range(token_indexes.shape[0]):
+    #         j, k = token_indexes[i]
+    #         logit_i = logits[j, k, :]
+    #         token_logits[i] = logit_i
+    #     return token_logits
 
-        for i in range(token_indexes.shape[0]):
-            j, k = token_indexes[i]
-            logit_i = logits[j, k, :]
-            token_logits[i] = logit_i
-        return token_logits
-
-    @staticmethod
-    def get_epoch_metrics(output: list, target: list, num_labels: int, fn: callable) -> dict:
-        metrics = fn(
-            list(itertools.chain.from_iterable(output)),
-            list(itertools.chain.from_iterable(target)),
-            num_labels
-        )
-        return metrics
+    # @staticmethod
+    # def get_epoch_metrics(output: list, target: list, num_labels: int, fn: callable) -> dict:
+    #     """TODO: move transforms to metrics function. And delete this."""
+    #     metrics = fn(
+    #         list(itertools.chain.from_iterable(output)),
+    #         list(itertools.chain.from_iterable(target)),
+    #         num_labels
+    #     )
+    #     return metrics
 
     def _validate_epoch(self, epoch) -> dict:
         _logits, _targets = [], []
@@ -190,7 +192,7 @@ class Trainer:
                 # TODO: why it can return tuple(tensor), except for just tensor?
                 if type(probs) == tuple:
                     probs = probs[0]
-                cls_probs = self._get_token_logits(data, probs, self.tokenizer.cls_token_id)
+                cls_probs = get_token_logits(self.device, data, probs, self.tokenizer.cls_token_id)
 
                 loss = self.loss_fn(cls_probs, labels)
                 running_loss += loss.item()
@@ -200,7 +202,7 @@ class Trainer:
 
         return {
             "loss": running_loss / self.batch_size,
-            "metrics": Trainer.get_epoch_metrics(_logits, _targets, self.num_labels, self.metric_fn)
+            "metrics": self.metric_fn(_logits, _targets, self.num_labels)
         }
 
     def _save_checkpoint(
