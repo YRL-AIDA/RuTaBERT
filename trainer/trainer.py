@@ -152,31 +152,6 @@ class Trainer:
             "metrics": self.metric_fn(_logits, _targets, self.num_labels)
         }
 
-    # @staticmethod
-    # def get_token_logits(device, data: Tensor, logits: Tensor, token_id: int) -> Tensor:
-    #     """TODO: move to functions?"""
-    #     token_indexes = torch.nonzero(data == token_id)
-    #     token_logits = torch.zeros(
-    #         token_indexes.shape[0],
-    #         logits.shape[2]
-    #     ).to(device)
-    #
-    #     for i in range(token_indexes.shape[0]):
-    #         j, k = token_indexes[i]
-    #         logit_i = logits[j, k, :]
-    #         token_logits[i] = logit_i
-    #     return token_logits
-
-    # @staticmethod
-    # def get_epoch_metrics(output: list, target: list, num_labels: int, fn: callable) -> dict:
-    #     """TODO: move transforms to metrics function. And delete this."""
-    #     metrics = fn(
-    #         list(itertools.chain.from_iterable(output)),
-    #         list(itertools.chain.from_iterable(target)),
-    #         num_labels
-    #     )
-    #     return metrics
-
     def _validate_epoch(self, epoch) -> dict:
         _logits, _targets = [], []
 
