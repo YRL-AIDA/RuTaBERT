@@ -6,6 +6,8 @@ from torch import Tensor
 
 from datetime import datetime
 
+from logs.logger import Logger
+
 
 class Trainer:
     """
@@ -26,6 +28,7 @@ class Trainer:
             valid_dataloader=None,
             lr_scheduler=None,
             num_epochs=None,
+            logger: Logger = None
     ):
         self.model = model
         self.tokenizer = tokenizer
@@ -44,6 +47,9 @@ class Trainer:
         self.train_dataloader = train_dataloader
         self.valid_dataloader = valid_dataloader
         self.batch_size = batch_size
+
+        self.logger = logger
+        self.logger.info("--- New trainer initialized ---", "TRAINER")
 
         # TODO:
         # self.lr_scheduler = lr_scheduler
@@ -66,20 +72,31 @@ class Trainer:
 
     def train(self):
         for epoch in range(self.start_epoch, self.num_epochs):
+            self.logger.info(f"Epoch {epoch} started.", "EPOCH")
+
             train_loss_metric = self._train_epoch(epoch)
             self.losses["train"].append(train_loss_metric["loss"])
+            self.logger.info(f"Epoch {epoch}. Train loss: {train_loss_metric['loss']}.", "LOSS")
 
             for metric in train_loss_metric["metrics"].keys():
                 self.metrics["train"][metric].append(train_loss_metric["metrics"][metric])
+                self.logger.info(f"Epoch {epoch}. {metric}: {train_loss_metric['metrics'][metric]}", "METRICS")
 
             valid_loss_metric = self._validate_epoch(epoch)
             self.losses["valid"].append(valid_loss_metric["loss"])
+            self.logger.info(f"Epoch {epoch}. Valid loss: {valid_loss_metric['loss']}.", "LOSS")
 
             for metric in valid_loss_metric["metrics"].keys():
                 self.metrics["valid"][metric].append(valid_loss_metric["metrics"][metric])
+                self.logger.info(f"Epoch {epoch}. {metric}: {valid_loss_metric['metrics'][metric]}", "METRICS")
 
                 if getattr(self, f"best_{metric}") < valid_loss_metric["metrics"][metric]:
                     setattr(self, f"best_{metric}", valid_loss_metric["metrics"][metric])
+                    self.logger.info(
+                        f"Epoch {epoch}. New best {metric}: {valid_loss_metric['metrics'][metric]}",
+                        "BEST_METRIC"
+                    )
+
                     self._save_checkpoint(
                         epoch,
                         self.losses,
@@ -87,6 +104,11 @@ class Trainer:
                         save_best=True,
                         suffix=metric
                     )
+                    self.logger.info(
+                        f"Epoch {epoch}. Model with best {metric}: {valid_loss_metric['metrics'][metric]} saved.",
+                        "BEST_SAVED"
+                    )
+
             if epoch % self.save_period_in_epochs == 0:
                 self._save_checkpoint(
                     epoch,
@@ -94,6 +116,12 @@ class Trainer:
                     self.metrics,
                     save_best=False
                 )
+                self.logger.info(
+                    f"Epoch {epoch}. Model has been saved by periodic saving mechanism.",
+                    "PERIODIC_SAVED"
+                )
+            self.logger.info(f"Epoch {epoch} ended.", "EPOCH")
+        self.logger.info(f"Training successfully ended.", "TRAINER")
         return self.losses, self.metrics
 
     def _train_epoch(self, epoch) -> dict:

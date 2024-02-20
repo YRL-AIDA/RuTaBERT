@@ -166,3 +166,6 @@ data/*.zip
 
 # --- Checkpoints ---
 checkpoints/model_epoch*.pt
+
+# --- Csv ---
+training_results.csv

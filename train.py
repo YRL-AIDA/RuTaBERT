@@ -1,8 +1,10 @@
 import numpy as np
+import pandas as pd
 import torch
 
 from dataset.dataloader import CtaDataLoader
 from dataset.dataset import TableDataset
+from logs.logger import Logger
 from model.metric import multiple_f1_score
 from model.model import BertForClassification
 
@@ -62,15 +64,21 @@ def train(config: Config):
         train_dataloader,
         valid_dataloader,
         num_epochs=config["num_epochs"],
+        logger=Logger(filename=config["train_log_filename"])
     )
-
     return trainer.train()
 
 
 if __name__ == "__main__":
+    # TODO: move saving dataframe and plot graphs into separate fn, classes
+    results = pd.DataFrame()
+
     losses, metrics = train(Config(config_path="config.json"))
 
     tr_loss, vl_loss = losses["train"], losses["valid"]
+    results["train_loss"] = losses["train"]
+    results["valid_loss"] = losses["valid"]
+
     plt.plot(tr_loss)
     plt.plot(vl_loss)
     plt.legend(["Train loss", "Valid loss"])
@@ -78,7 +86,11 @@ if __name__ == "__main__":
 
     for metric in ["f1_micro", "f1_macro", "f1_weighted"]:
         tr_f1, vl_f1 = metrics["train"][metric], metrics["valid"][metric]
+        results[f"train-{metric}"] = tr_f1
+        results[f"valid-{metric}"] = vl_f1
         plt.plot(tr_f1)
         plt.plot(vl_f1)
         plt.legend([f"Train {metric}", f"Valid {metric}"])
         plt.show()
+
+    results.to_csv("training_results.csv", index=False)

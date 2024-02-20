@@ -7,6 +7,7 @@
   "batch_size": 2,
   "num_epochs": 4,
   "random_seed": 2024,
+  "train_log_filename": "logs/train.log",
   "start_from_checkpoint": false,
   "checkpoint_dir": "checkpoints/",
   "checkpoint_name": "model_best_f1_weighted.pt",
