@@ -73,7 +73,9 @@ if __name__ == "__main__":
     # TODO: move saving dataframe and plot graphs into separate fn, classes
     results = pd.DataFrame()
 
-    losses, metrics = train(Config(config_path="config.json"))
+    conf = Config(config_path="config.json")
+
+    losses, metrics = train(conf)
 
     tr_loss, vl_loss = losses["train"], losses["valid"]
     results["train_loss"] = losses["train"]
@@ -84,7 +86,7 @@ if __name__ == "__main__":
     plt.legend(["Train loss", "Valid loss"])
     plt.show()
 
-    for metric in ["f1_micro", "f1_macro", "f1_weighted"]:
+    for metric in conf["metrics"]:
         tr_f1, vl_f1 = metrics["train"][metric], metrics["valid"][metric]
         results[f"train-{metric}"] = tr_f1
         results[f"valid-{metric}"] = vl_f1
