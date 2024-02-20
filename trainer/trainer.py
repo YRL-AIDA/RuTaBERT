@@ -89,7 +89,7 @@ class Trainer:
                 self.metrics["valid"][metric].append(valid_loss_metric["metrics"][metric])
                 self.logger.info(f"Epoch {epoch}. {metric}: {valid_loss_metric['metrics'][metric]}", "METRICS")
 
-                if getattr(self, f"best_{metric}") < valid_loss_metric["metrics"][metric]:
+                if getattr(self, f"best_{metric}") <= valid_loss_metric["metrics"][metric]:
                     setattr(self, f"best_{metric}", valid_loss_metric["metrics"][metric])
                     self.logger.info(
                         f"Epoch {epoch}. New best {metric}: {valid_loss_metric['metrics'][metric]}",
