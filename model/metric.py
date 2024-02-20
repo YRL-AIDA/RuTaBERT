@@ -1,9 +1,8 @@
 import torch
-from torch import Tensor
 from torcheval.metrics.functional import multiclass_f1_score
 
 
-def multiple_f1_score(output: list, target: list, num_classes: int) -> tuple[Tensor, Tensor, Tensor]:
+def multiple_f1_score(output: list, target: list, num_classes: int) -> dict:
     """TODO"""
 
     # TODO: memory cpy here, may be bad.
@@ -28,5 +27,8 @@ def multiple_f1_score(output: list, target: list, num_classes: int) -> tuple[Ten
         num_classes=num_classes,
         average="weighted"
     )
-
-    return f1_micro, f1_macro, f1_weighted
+    return {
+        "f1_micro": f1_micro,
+        "f1_macro": f1_macro,
+        "f1_weighted": f1_weighted
+    }

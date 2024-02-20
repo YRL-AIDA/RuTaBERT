@@ -1,16 +1,21 @@
 {
   "num_labels": 339,
-  "start_from_checkpoint": false,
+  "num_gpu": 0,
+  "save_period_in_epochs": 2,
+  "metrics": ["f1_micro", "f1_macro", "f1_weighted"],
   "pretrained_model_name": "bert-base-multilingual-uncased",
   "batch_size": 2,
   "num_epochs": 4,
   "random_seed": 2024,
+  "start_from_checkpoint": false,
+  "checkpoint_dir": "checkpoints/",
+  "checkpoint_name": "model_best_f1_weighted.pt",
   "dataloader": {
     "valid_split": 0.2,
     "num_workers": 0
   },
   "dataset": {
     "num_rows": 1,
-    "data_dir": "../data/"
+    "data_dir": "data/"
   }
 }
