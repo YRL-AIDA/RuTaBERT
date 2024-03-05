@@ -8,7 +8,7 @@ from logs.logger import Logger
 from model.metric import multiple_f1_score
 from model.model import BertForClassification
 
-from transformers import BertTokenizer, BertConfig
+from transformers import BertTokenizer, BertConfig, get_linear_schedule_with_warmup
 
 import matplotlib.pyplot as plt
 
@@ -51,18 +51,24 @@ def train(config: Config):
     if len(device_ids) > 1:
         model = torch.nn.DataParallel(model, device_ids=device_ids)
 
+    optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, eps=1e-8)
     trainer = Trainer(
         model,
         tokenizer,
         config["num_labels"],
         torch.nn.CrossEntropyLoss(),
         multiple_f1_score,
-        torch.optim.AdamW(model.parameters()),
+        optimizer,
         config,
         device,
         config["batch_size"],
         train_dataloader,
         valid_dataloader,
+        lr_scheduler=get_linear_schedule_with_warmup(
+            optimizer,
+            num_warmup_steps=0,
+            num_training_steps=len(train_dataloader) * config["num_epochs"]
+        ),
         num_epochs=config["num_epochs"],
         logger=Logger(filename=config["train_log_filename"])
     )
