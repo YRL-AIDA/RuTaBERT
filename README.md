@@ -101,9 +101,9 @@ sudo docker run -d --runtime=nvidia --gpus=all \
 
 ### Move models and logs from container after training
 ```
-sudo cp -r /var/lib/docker/volumes/cta_checkpoints/_data ./checkpoints
+sudo cp -r /var/lib/docker/volumes/<volume_checkpoints_name>/_data ./checkpoints
 ```
 
 ```
-sudo cp -r /var/lib/docker/volumes/cta_logs/_data ./logs
+sudo cp -r /var/lib/docker/volumes/<volume_logs_name>/_data ./logs
 ```
