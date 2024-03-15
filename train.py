@@ -30,7 +30,7 @@ def train(config: Config):
     dataset = TableDataset(
         tokenizer=tokenizer,
         num_rows=config["dataset"]["num_rows"],
-        data_dir=config["dataset"]["data_dir"]
+        data_dir=config["dataset"]["data_dir"] + config["dataset"]["train_path"]
     )
     train_dataloader = CtaDataLoader(
         dataset,

@@ -108,6 +108,8 @@ class Trainer:
                     )
 
             if epoch % self.save_period_in_epochs == 0:
+                Logger.nvidia_smi()
+
                 self._save_checkpoint(
                     epoch,
                     self.losses,
@@ -118,7 +120,7 @@ class Trainer:
                     f"Epoch {epoch}. Model has been saved by periodic saving mechanism.",
                     "PERIODIC_SAVED"
                 )
-            self.logger.info(f"Epoch {epoch} ended.", "EPOCH")
+            self.logger.info("--- --- ---", "TRAINER")
         self.logger.info(f"Training successfully ended.", "TRAINER")
         return self.losses, self.metrics
 
@@ -198,7 +200,7 @@ class Trainer:
         else:
             checkpoint_path = (
                 f"{self.checkpoint_dir}model_epoch_{epoch}_"
-                f"datetime-{datetime.now():%d-%m-%y-%H-%M-%S}.pt"
+                f"datetime-{datetime.now():%d-%m-%y_%H-%M-%S}.pt"
             )
         torch.save(
             {

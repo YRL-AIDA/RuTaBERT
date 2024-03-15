@@ -161,7 +161,8 @@ cython_debug/
 
 
 # --- Data ignores ---
-data/*.csv
+data/train/*.csv
+data/test/*.csv
 data/*.zip
 
 # --- Checkpoints ---

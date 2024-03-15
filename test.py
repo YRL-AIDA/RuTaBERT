@@ -1,14 +1,22 @@
+import numpy as np
 import torch
 
 from config import Config
 from dataset.dataloader import CtaDataLoader
 from dataset.dataset import TableDataset
+from logs.logger import Logger
 from model.metric import multiple_f1_score
 from model.model import BertForClassification
 
 from transformers import BertTokenizer, BertConfig
 
 from utils.functions import collate, prepare_device, get_token_logits
+
+# Random seed
+torch.manual_seed(13)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+np.random.seed(13)
 
 
 def test(
@@ -31,7 +39,8 @@ def test(
             data = batch["data"].to(device)
             labels = batch["labels"].to(device)
 
-            probs = model(data)
+            attention_mask = torch.clone(data != 0)
+            probs = model(data, attention_mask=attention_mask)
             # TODO: why it can return tuple(tensor), except for just tensor?
             if type(probs) == tuple:
                 probs = probs[0]
@@ -57,7 +66,7 @@ if __name__ == "__main__":
     dataset = TableDataset(
         tokenizer=tokenizer,
         num_rows=conf["dataset"]["num_rows"],
-        data_dir=conf["dataset"]["data_dir"]
+        data_dir=conf["dataset"]["data_dir"] + conf["dataset"]["test_path"]
     )
     dataloader = CtaDataLoader(
         dataset,
@@ -89,6 +98,9 @@ if __name__ == "__main__":
         conf["num_labels"]
     )
 
-    print(f"Loss: {loss_metrics['loss']};")
+    # TODO: log
+    logger = Logger(conf["test_log_filename"])
+    logger.info(f"--- --- ---", "TEST")
+    logger.info(f"Loss: {loss_metrics['loss']};", "LOSS")
     for metric in conf["metrics"]:
-        print(f"{metric} = {loss_metrics['metrics'][metric]}")
+        logger.info(f"{metric} = {loss_metrics['metrics'][metric]}", "METRIC")
