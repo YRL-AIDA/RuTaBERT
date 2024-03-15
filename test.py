@@ -98,7 +98,7 @@ if __name__ == "__main__":
         conf["num_labels"]
     )
 
-    # TODO: log
+    # Logging results
     logger = Logger(conf["test_log_filename"])
     logger.info(f"--- --- ---", "TEST")
     logger.info(f"Loss: {loss_metrics['loss']};", "LOSS")

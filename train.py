@@ -10,11 +10,9 @@ from model.model import BertForClassification
 
 from transformers import BertTokenizer, BertConfig, get_linear_schedule_with_warmup
 
-import matplotlib.pyplot as plt
-
 from config import Config
 from trainer.trainer import Trainer
-from utils.functions import prepare_device, collate
+from utils.functions import prepare_device, collate, plot_graphs
 
 # Random seed
 torch.manual_seed(13)
@@ -83,22 +81,14 @@ if __name__ == "__main__":
 
     losses, metrics = train(conf)
 
-    tr_loss, vl_loss = losses["train"], losses["valid"]
+    # plot_graphs(losses, metrics, conf)
+
     results["train_loss"] = losses["train"]
     results["valid_loss"] = losses["valid"]
-
-    plt.plot(tr_loss)
-    plt.plot(vl_loss)
-    plt.legend(["Train loss", "Valid loss"])
-    plt.show()
 
     for metric in conf["metrics"]:
         tr_f1, vl_f1 = metrics["train"][metric], metrics["valid"][metric]
         results[f"train-{metric}"] = tr_f1
         results[f"valid-{metric}"] = vl_f1
-        plt.plot(tr_f1)
-        plt.plot(vl_f1)
-        plt.legend([f"Train {metric}", f"Valid {metric}"])
-        plt.show()
 
     results.to_csv("training_results.csv", index=False)
