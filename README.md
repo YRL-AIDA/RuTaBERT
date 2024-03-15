@@ -1,7 +1,18 @@
 # CTA model
+TODO: write about model
 
-## Dataset
-Before training model you need to move data_*.csv files from dataset to `data` directory.
+## Dataset files
+Before training the model you need to:
+1. move data_*.csv (train) files from dataset repository (`dataset/cta_dataset/train/`) to `data/train/`
+2. move data.csv (test) file from dataset repository (`dataset/cta_dataset/test/`) to `./data/test/`
+
+## Configure config.json
+Don't forget to configure `config.json` file before training.
+
+## Training
+Run train.py file to start training locally or build docker container and run it (see instructions below).
+
+---
 
 ## Docker
 

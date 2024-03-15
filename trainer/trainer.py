@@ -50,8 +50,7 @@ class Trainer:
         self.logger = logger
         self.logger.info("--- New trainer initialized ---", "TRAINER")
 
-        # TODO:
-        # self.lr_scheduler = lr_scheduler
+        self.lr_scheduler = lr_scheduler
 
         for metric_name in config["metrics"]:
             setattr(self, f"best_{metric_name}", 0.0)
@@ -79,7 +78,7 @@ class Trainer:
 
             for metric in train_loss_metric["metrics"].keys():
                 self.metrics["train"][metric].append(train_loss_metric["metrics"][metric])
-                self.logger.info(f"Epoch {epoch}. {metric}: {train_loss_metric['metrics'][metric]}", "METRICS")
+                self.logger.info(f"Epoch {epoch}. {metric}: {train_loss_metric['metrics'][metric]}", "TRAIN_METRICS")
 
             valid_loss_metric = self._validate_epoch(epoch)
             self.losses["valid"].append(valid_loss_metric["loss"])
@@ -87,7 +86,7 @@ class Trainer:
 
             for metric in valid_loss_metric["metrics"].keys():
                 self.metrics["valid"][metric].append(valid_loss_metric["metrics"][metric])
-                self.logger.info(f"Epoch {epoch}. {metric}: {valid_loss_metric['metrics'][metric]}", "METRICS")
+                self.logger.info(f"Epoch {epoch}. {metric}: {valid_loss_metric['metrics'][metric]}", "VALID_METRICS")
 
                 if getattr(self, f"best_{metric}") <= valid_loss_metric["metrics"][metric]:
                     setattr(self, f"best_{metric}", valid_loss_metric["metrics"][metric])
@@ -109,6 +108,8 @@ class Trainer:
                     )
 
             if epoch % self.save_period_in_epochs == 0:
+                Logger.nvidia_smi()
+
                 self._save_checkpoint(
                     epoch,
                     self.losses,
@@ -119,7 +120,7 @@ class Trainer:
                     f"Epoch {epoch}. Model has been saved by periodic saving mechanism.",
                     "PERIODIC_SAVED"
                 )
-            self.logger.info(f"Epoch {epoch} ended.", "EPOCH")
+            self.logger.info("--- --- ---", "TRAINER")
         self.logger.info(f"Training successfully ended.", "TRAINER")
         return self.losses, self.metrics
 
@@ -133,7 +134,8 @@ class Trainer:
             data = batch["data"].to(self.device)
             labels = batch["labels"].to(self.device)
 
-            logits, = self.model(data)
+            attention_mask = torch.clone(data != 0)
+            logits, = self.model(data, attention_mask=attention_mask)
             cls_logits = get_token_logits(self.device, data, logits, self.tokenizer.cls_token_id)
 
             loss = self.loss_fn(cls_logits, labels)
@@ -147,6 +149,8 @@ class Trainer:
             _logits.append(cls_logits.argmax(1).cpu().detach().numpy().tolist())
             _targets.append(labels.cpu().detach().numpy().tolist())
 
+        if self.lr_scheduler is not None:
+            self.lr_scheduler.step()
         return {
             "loss": running_loss / self.batch_size,
             "metrics": self.metric_fn(_logits, _targets, self.num_labels)
@@ -163,7 +167,8 @@ class Trainer:
                 data = batch["data"].to(self.device)
                 labels = batch["labels"].to(self.device)
 
-                probs = self.model(data)
+                attention_mask = torch.clone(data != 0)
+                probs = self.model(data, attention_mask=attention_mask)
                 # TODO: why it can return tuple(tensor), except for just tensor?
                 if type(probs) == tuple:
                     probs = probs[0]
@@ -195,7 +200,7 @@ class Trainer:
         else:
             checkpoint_path = (
                 f"{self.checkpoint_dir}model_epoch_{epoch}_"
-                f"datetime-{datetime.now():%d-%m-%y-%H-%M-%S}.pt"
+                f"datetime-{datetime.now():%d-%m-%y_%H-%M-%S}.pt"
             )
         torch.save(
             {

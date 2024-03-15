@@ -26,7 +26,7 @@ class TableDataset(Dataset):
             transform=None,
             target_transform=None,
     ):
-        # Read dataset .csv files from ../data/ dir:
+        # Read dataset .csv files from ../data/train(test) dir:
         df = TableDataset.read_multiple_csv(data_dir, num_rows)
 
         # Tokenize dataset with BERT tokenizer
@@ -56,17 +56,26 @@ class TableDataset(Dataset):
 
         df_list = []
         num_chunks = len(glob.glob(data_dir + "data_*.csv"))
-        for i in range(num_chunks):
-            df = pd.read_csv(
-                data_dir + f"data_{i}.csv",
-                sep="|",
-                engine="python",
-                quotechar='"',
-                on_bad_lines="warn",
-                nrows=num_rows if num_rows is not None else None
-            )
-            df_list.append(df)
-        return pd.concat(df_list, axis=0)
+        if num_chunks > 1:
+            for i in range(num_chunks):
+                df = pd.read_csv(
+                    data_dir + f"data_{i}.csv",
+                    sep="|",
+                    engine="python",
+                    quotechar='"',
+                    on_bad_lines="warn",
+                    nrows=num_rows if num_rows is not None else None
+                )
+                df_list.append(df)
+            return pd.concat(df_list, axis=0)
+        return pd.read_csv(
+            data_dir + f"data.csv",
+            sep="|",
+            engine="python",
+            quotechar='"',
+            on_bad_lines="warn",
+            nrows=num_rows if num_rows is not None else None
+        )
 
     @staticmethod
     def _create_dataset(df: pd.DataFrame, tokenizer: PreTrainedTokenizerBase) -> pd.DataFrame:

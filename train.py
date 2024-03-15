@@ -8,13 +8,11 @@ from logs.logger import Logger
 from model.metric import multiple_f1_score
 from model.model import BertForClassification
 
-from transformers import BertTokenizer, BertConfig
-
-import matplotlib.pyplot as plt
+from transformers import BertTokenizer, BertConfig, get_linear_schedule_with_warmup
 
 from config import Config
 from trainer.trainer import Trainer
-from utils.functions import prepare_device, collate
+from utils.functions import prepare_device, collate, plot_graphs
 
 # Random seed
 torch.manual_seed(13)
@@ -30,7 +28,7 @@ def train(config: Config):
     dataset = TableDataset(
         tokenizer=tokenizer,
         num_rows=config["dataset"]["num_rows"],
-        data_dir=config["dataset"]["data_dir"]
+        data_dir=config["dataset"]["data_dir"] + config["dataset"]["train_path"]
     )
     train_dataloader = CtaDataLoader(
         dataset,
@@ -51,18 +49,24 @@ def train(config: Config):
     if len(device_ids) > 1:
         model = torch.nn.DataParallel(model, device_ids=device_ids)
 
+    optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, eps=1e-8)
     trainer = Trainer(
         model,
         tokenizer,
         config["num_labels"],
         torch.nn.CrossEntropyLoss(),
         multiple_f1_score,
-        torch.optim.AdamW(model.parameters()),
+        optimizer,
         config,
         device,
         config["batch_size"],
         train_dataloader,
         valid_dataloader,
+        lr_scheduler=get_linear_schedule_with_warmup(
+            optimizer,
+            num_warmup_steps=0,
+            num_training_steps=len(train_dataloader) * config["num_epochs"]
+        ),
         num_epochs=config["num_epochs"],
         logger=Logger(filename=config["train_log_filename"])
     )
@@ -77,22 +81,14 @@ if __name__ == "__main__":
 
     losses, metrics = train(conf)
 
-    tr_loss, vl_loss = losses["train"], losses["valid"]
+    # plot_graphs(losses, metrics, conf)
+
     results["train_loss"] = losses["train"]
     results["valid_loss"] = losses["valid"]
-
-    plt.plot(tr_loss)
-    plt.plot(vl_loss)
-    plt.legend(["Train loss", "Valid loss"])
-    plt.show()
 
     for metric in conf["metrics"]:
         tr_f1, vl_f1 = metrics["train"][metric], metrics["valid"][metric]
         results[f"train-{metric}"] = tr_f1
         results[f"valid-{metric}"] = vl_f1
-        plt.plot(tr_f1)
-        plt.plot(vl_f1)
-        plt.legend([f"Train {metric}", f"Valid {metric}"])
-        plt.show()
 
     results.to_csv("training_results.csv", index=False)

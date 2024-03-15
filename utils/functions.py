@@ -1,5 +1,9 @@
 import torch
 
+import matplotlib.pyplot as plt
+
+from config import Config
+
 
 def collate(samples: list) -> dict:
     """
@@ -44,3 +48,19 @@ def get_token_logits(device, data: torch.Tensor, logits: torch.Tensor, token_id:
         logit_i = logits[j, k, :]
         token_logits[i] = logit_i
     return token_logits
+
+
+def plot_graphs(losses: dict, metrics: dict, conf: Config) -> None:
+    tr_loss, vl_loss = losses["train"], losses["valid"]
+
+    plt.plot(tr_loss)
+    plt.plot(vl_loss)
+    plt.legend(["Train loss", "Valid loss"])
+    plt.show()
+
+    for metric in conf["metrics"]:
+        tr_f1, vl_f1 = metrics["train"][metric], metrics["valid"][metric]
+        plt.plot(tr_f1)
+        plt.plot(vl_f1)
+        plt.legend([f"Train {metric}", f"Valid {metric}"])
+        plt.show()
