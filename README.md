@@ -1,16 +1,16 @@
-# CTA model
-TODO: write about model
+# RuTaBERT
+Model for solving the problem of Column Type Annotation with BERT, trained on [russian corpus](https://github.com/STI-Team/RuTaBERT-Dataset).
 
 ## Dataset files
-Before training the model you need to:
-1. move data_*.csv (train) files from dataset repository (`dataset/cta_dataset/train/`) to `data/train/`
-2. move data.csv (test) file from dataset repository (`dataset/cta_dataset/test/`) to `./data/test/`
+Before training / testing the model you need to:
+1. move `data_*.csv` files from [dataset repository](https://github.com/STI-Team/RuTaBERT-Dataset/tree/main/dataset/cta_dataset/train) to `data/train/`
+2. move `data.csv` file from [dataset repository](https://github.com/STI-Team/RuTaBERT-Dataset/tree/main/dataset/cta_dataset/test) to `./data/test/`
 
 ## Configure config.json
 Don't forget to configure `config.json` file before training.
 
 ## Training
-Run train.py file to start training locally or build docker container and run it (see instructions below).
+Run `train.py` file to start training locally or build docker container and run it (see instructions below).
 
 ---
 
@@ -100,6 +100,7 @@ sudo docker run -d --runtime=nvidia --gpus=all \
 ```
 
 ### Move models and logs from container after training
+*Don't forget to remove volumes after training! Docker wont do it for you.*
 ```
 sudo cp -r /var/lib/docker/volumes/<volume_checkpoints_name>/_data ./checkpoints
 ```
