@@ -3,7 +3,7 @@ Model for solving the problem of Column Type Annotation with BERT, trained on [r
 
 ## Dataset files
 Before training / testing the model you need to:
-1. move `data_*.csv` files from [dataset repository](https://github.com/STI-Team/RuTaBERT-Dataset/tree/main/dataset/cta_dataset/train) to `data/train/`
+1. move `data_*.csv` files from [dataset repository](https://github.com/STI-Team/RuTaBERT-Dataset/tree/main/dataset/cta_dataset/train) to `./data/train/`
 2. move `data.csv` file from [dataset repository](https://github.com/STI-Team/RuTaBERT-Dataset/tree/main/dataset/cta_dataset/test) to `./data/test/`
 
 ## Configure config.json
@@ -88,23 +88,23 @@ sudo systemctl restart docker
 
 ### Build image
 ```
-sudo docker build -t <image_name> .
+sudo docker build -t rutabert .
 ```
 
 ### Run image
 ```
 sudo docker run -d --runtime=nvidia --gpus=all \
-    --mount source=<volume_logs_name>,target=/app/cta/logs \
-    --mount source=<volume_checkpoints_name>,target=/app/cta/checkpoints \
-    <image_name>
+    --mount source=rutabert_logs,target=/app/rutabert/logs \
+    --mount source=rutabert_checkpoints,target=/app/rutabert/checkpoints \
+    rutabert
 ```
 
 ### Move models and logs from container after training
 *Don't forget to remove volumes after training! Docker wont do it for you.*
 ```
-sudo cp -r /var/lib/docker/volumes/<volume_checkpoints_name>/_data ./checkpoints
+sudo cp -r /var/lib/docker/volumes/rutabert_checkpoints/_data ./checkpoints
 ```
 
 ```
-sudo cp -r /var/lib/docker/volumes/<volume_logs_name>/_data ./logs
+sudo cp -r /var/lib/docker/volumes/rutabert_logs/_data ./logs
 ```
