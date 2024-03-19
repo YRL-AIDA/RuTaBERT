@@ -91,4 +91,4 @@ if __name__ == "__main__":
         results[f"train-{metric}"] = tr_f1
         results[f"valid-{metric}"] = vl_f1
 
-    results.to_csv("training_results.csv", index=False)
+    results.to_csv(conf["logs_dir"] + "training_results.csv", index=False)

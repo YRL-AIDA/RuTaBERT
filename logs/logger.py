@@ -14,7 +14,7 @@ class Logger:
 
     @staticmethod
     def nvidia_smi():
-        os.system("echo nvidia-smi >> logs/gpu.log")
+        os.system("nvidia-smi >> logs/gpu.log")
 
     def info(self, msg: str, level: Optional[str] = None):
         self._log("INFO", msg, level)
