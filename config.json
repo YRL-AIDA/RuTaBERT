@@ -1,6 +1,6 @@
 {
   "num_labels": 170,
-  "num_gpu": 2,
+  "num_gpu": 3,
   "save_period_in_epochs": 5,
   "metrics": ["f1_micro", "f1_macro", "f1_weighted"],
   "pretrained_model_name": "bert-base-multilingual-uncased",
@@ -12,7 +12,7 @@
   "test_log_filename": "logs/test.log",
   "start_from_checkpoint": false,
   "checkpoint_dir": "checkpoints/",
-  "checkpoint_name": "model_best_f1_macro.pt",
+  "checkpoint_name": "model_best_f1_weighted.pt",
   "dataloader": {
     "valid_split": 0.1,
     "num_workers": 0
