@@ -2,6 +2,7 @@ import numpy as np
 import torch
 
 from config import Config
+from dataset.colwise_dataset import ColWiseDataset
 from dataset.dataloader import CtaDataLoader
 from dataset.dataset import TableDataset
 from logs.logger import Logger
@@ -63,7 +64,15 @@ if __name__ == "__main__":
 
     tokenizer = BertTokenizer.from_pretrained(conf["pretrained_model_name"])
 
-    dataset = TableDataset(
+    table_serialization_type_dataset = {
+        "table_wise": TableDataset,
+        "column_wise": ColWiseDataset
+    }
+    dataset_type = table_serialization_type_dataset.get(
+        conf["table_serialization_type"],
+        TableDataset
+    )
+    dataset = dataset_type(
         tokenizer=tokenizer,
         num_rows=conf["dataset"]["num_rows"],
         data_dir=conf["dataset"]["data_dir"] + conf["dataset"]["test_path"]
