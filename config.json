@@ -4,6 +4,7 @@
   "save_period_in_epochs": 5,
   "metrics": ["f1_micro", "f1_macro", "f1_weighted"],
   "pretrained_model_name": "bert-base-multilingual-uncased",
+  "table_serialization_type": "column_wise",
   "batch_size": 32,
   "num_epochs": 30,
   "random_seed": 2024,

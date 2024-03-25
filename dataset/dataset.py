@@ -27,10 +27,10 @@ class TableDataset(Dataset):
             target_transform=None,
     ):
         # Read dataset .csv files from ../data/train(test) dir:
-        df = TableDataset.read_multiple_csv(data_dir, num_rows)
+        df = self.read_multiple_csv(data_dir, num_rows)
 
         # Tokenize dataset with BERT tokenizer
-        self.df = TableDataset._create_dataset(
+        self.df = self._create_dataset(
             df,
             tokenizer
         )
@@ -47,8 +47,8 @@ class TableDataset(Dataset):
             "labels": self.df.iloc[idx]["labels"],
         }
 
-    @staticmethod
-    def read_multiple_csv(data_dir: str, num_rows: Optional[int] = None) -> pd.DataFrame:
+    # @staticmethod
+    def read_multiple_csv(self, data_dir: str, num_rows: Optional[int] = None) -> pd.DataFrame:
         """
         TODO
         :return:
@@ -77,8 +77,8 @@ class TableDataset(Dataset):
             nrows=num_rows if num_rows is not None else None
         )
 
-    @staticmethod
-    def _create_dataset(df: pd.DataFrame, tokenizer: PreTrainedTokenizerBase) -> pd.DataFrame:
+    # @staticmethod
+    def _create_dataset(self, df: pd.DataFrame, tokenizer: PreTrainedTokenizerBase) -> pd.DataFrame:
         """
         TODO
         :return:

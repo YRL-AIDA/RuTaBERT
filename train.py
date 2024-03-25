@@ -2,9 +2,12 @@ import numpy as np
 import pandas as pd
 import torch
 
-from dataset.dataloader import CtaDataLoader
+from dataset.colwise_dataset import ColWiseDataset
 from dataset.dataset import TableDataset
+from dataset.dataloader import CtaDataLoader
+
 from logs.logger import Logger
+
 from model.metric import multiple_f1_score
 from model.model import BertForClassification
 
@@ -25,7 +28,15 @@ def train(config: Config):
     # TODO: assert config variables assigned and correct
     tokenizer = BertTokenizer.from_pretrained(config["pretrained_model_name"])
 
-    dataset = TableDataset(
+    table_serialization_type_dataset = {
+        "table_wise": TableDataset,
+        "column_wise": ColWiseDataset
+    }
+    dataset_type = table_serialization_type_dataset.get(
+        config["table_serialization_type"],
+        TableDataset
+    )
+    dataset = dataset_type(
         tokenizer=tokenizer,
         num_rows=config["dataset"]["num_rows"],
         data_dir=config["dataset"]["data_dir"] + config["dataset"]["train_path"]
@@ -74,7 +85,6 @@ def train(config: Config):
 
 
 if __name__ == "__main__":
-    # TODO: move saving dataframe and plot graphs into separate fn, classes
     results = pd.DataFrame()
 
     conf = Config(config_path="config.json")
@@ -91,4 +101,4 @@ if __name__ == "__main__":
         results[f"train-{metric}"] = tr_f1
         results[f"valid-{metric}"] = vl_f1
 
-    results.to_csv("training_results.csv", index=False)
+    results.to_csv(conf["logs_dir"] + "training_results.csv", index=False)
