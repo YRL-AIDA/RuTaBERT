@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 
 import matplotlib.pyplot as plt
@@ -100,3 +101,19 @@ def plot_graphs(losses: dict, metrics: dict, config: Config) -> None:
         plt.plot(vl_f1)
         plt.legend([f"Train {metric}", f"Valid {metric}"])
         plt.show()
+
+
+def set_rs(seed: int = 13) -> None:
+    """Set random seed.
+
+    Args:
+        seed: Random seed.
+
+    Returns:
+        None
+    """
+    # Random seed
+    torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    np.random.seed(seed)

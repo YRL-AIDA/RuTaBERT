@@ -11,16 +11,11 @@ from model.model import BertForClassification
 
 from transformers import BertTokenizer, BertConfig
 
-from utils.functions import collate, prepare_device, get_token_logits
-
-# Random seed
-torch.manual_seed(13)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-np.random.seed(13)
+from utils.functions import collate, prepare_device, get_token_logits, set_rs
 
 
 def test(
+        config,
         model,
         dataloader,
         device,
@@ -30,6 +25,8 @@ def test(
         batch_size,
         num_labels
 ):
+    set_rs(config["random_seed"])
+
     _logits, _targets = [], []
 
     model.eval()
@@ -43,7 +40,7 @@ def test(
             attention_mask = torch.clone(data != 0)
             probs = model(data, attention_mask=attention_mask)
             # TODO: why it can return tuple(tensor), except for just tensor?
-            if type(probs) == tuple:
+            if isinstance(probs, tuple):
                 probs = probs[0]
             cls_probs = get_token_logits(device, data, probs, tokenizer.cls_token_id)
 
@@ -90,13 +87,13 @@ if __name__ == "__main__":
     checkpoint = torch.load(conf["checkpoint_dir"] + conf["checkpoint_name"])
     model.load_state_dict(checkpoint['model_state_dict'])
 
-    # TODO: multi-gpu support!
     device, device_ids = prepare_device(conf["num_gpu"])
     model = model.to(device)
     if len(device_ids) > 1:
         model = torch.nn.DataParallel(model, device_ids=device_ids)
 
     loss_metrics = test(
+        conf,
         model,
         dataloader,
         device,
