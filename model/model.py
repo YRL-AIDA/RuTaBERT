@@ -1,12 +1,13 @@
 from transformers import BertPreTrainedModel, BertModel
 
 import torch.nn as nn
-from torch.nn import CrossEntropyLoss
 
 
 class BertForClassification(BertPreTrainedModel):
-    """
-    TODO
+    """BERT model for `Column Table Annotation` task.
+
+    Args:
+        config: Model configuration class with all the parameters of the BERT model.
     """
 
     def __init__(self, config):
@@ -20,25 +21,30 @@ class BertForClassification(BertPreTrainedModel):
 
         self.init_weights()
 
-    def forward(
-            self,
-            input_ids=None,
-            labels=None,
-            attention_mask=None,
-            token_type_ids=None,
-            position_ids=None,
-            head_mask=None,
-            inputs_embeds=None,
-    ):
+    def forward(self, input_ids=None, attention_mask=None) -> tuple:
+        """Forward pass.
 
-        # TODO: pass attention mask? because seq may be padded
+        Pass `input_ids` with `attentions_mask` to BERT model, and then take the `last_hidden_state` of the BERT output
+        (batch_size x sequence_length x bert_output) and pass this output through the dropout and the linear layers.
+        The output tensor have (batch_size x sequence_length x num_labels) size.
+
+        Note:
+            Logits have **(batch_size, sequence_length, num_labels)** size.
+
+        Args:
+            input_ids: Indices of input sequence tokens in the vocabulary.
+            attention_mask:
+                Mask to avoid performing attention on padding token indices. Mask values selected in `[0, 1]`:
+
+                - 1 for tokens that are **not masked**,
+                - 0 for tokens that are **masked**.
+
+        Returns:
+            tuple: Tuple of (logits, hidden_states, attentions).
+        """
         outputs = self.bert(
-            input_ids,
-            attention_mask=attention_mask,
-            token_type_ids=token_type_ids,
-            position_ids=position_ids,
-            head_mask=head_mask,
-            inputs_embeds=inputs_embeds,
+            input_ids=input_ids,
+            attention_mask=attention_mask
         )
 
         last_hidden_state = outputs[0]  # (batch_size, seq_len, 768)
@@ -47,12 +53,7 @@ class BertForClassification(BertPreTrainedModel):
         logits = self.classifier(last_hidden_state)  # (batch_size, seq_len, num_labels)
         outputs = (logits, ) + outputs[2:]
 
-        if labels is not None:
-            loss = CrossEntropyLoss(
-                logits.view(-1, self.num_labels), labels.view(-1)
-            )
-            outputs = (loss, ) + outputs
-        return outputs  # (loss), logits, (hidden_states), (attentions)
+        return outputs  # logits, (hidden_states), (attentions)
 
 
 if __name__ == "__main__":

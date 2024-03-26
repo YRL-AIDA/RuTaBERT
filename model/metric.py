@@ -5,7 +5,18 @@ from torcheval.metrics.functional import multiclass_f1_score
 
 
 def multiple_f1_score(output: list, target: list, num_classes: int) -> dict:
-    """TODO"""
+    """Calculate multiple F1 scores.
+
+    For given outputs and targets calculate F1-micro, F1-macro and F1-weighted.
+
+    Args:
+        output: List of outputs.
+        target: List of targets.
+        num_classes: Number of classes, used for classification task.
+
+    Returns:
+        dict: Dictionary of calculated F1 scores (macro, micro, weighted).
+    """
 
     output = list(itertools.chain.from_iterable(output))
     target = list(itertools.chain.from_iterable(target))
@@ -19,7 +30,6 @@ def multiple_f1_score(output: list, target: list, num_classes: int) -> dict:
         num_classes=num_classes,
         average="micro"
     )
-    # TODO: useless if has class imbalance
     f1_macro = multiclass_f1_score(
         logits_tensor,
         targets_tensor,
@@ -32,6 +42,7 @@ def multiple_f1_score(output: list, target: list, num_classes: int) -> dict:
         num_classes=num_classes,
         average="weighted"
     )
+
     return {
         "f1_micro": f1_micro,
         "f1_macro": f1_macro,
