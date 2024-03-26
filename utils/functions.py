@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 
 import matplotlib.pyplot as plt
@@ -6,10 +7,17 @@ from config import Config
 
 
 def collate(samples: list) -> dict:
-    """
-    TODO
-    :param samples:
-    :return:
+    """Preprocess data by batch.
+
+    Pad sequence by length of maximum sequence in a batch with zeros.
+
+    Flatten labels into one sequence.
+
+    Args:
+        samples: Samples from batch.
+
+    Returns:
+        dict: Padded sequences and flattened labels.
     """
     data = torch.nn.utils.rnn.pad_sequence(
         [sample["data"] for sample in samples]
@@ -20,9 +28,17 @@ def collate(samples: list) -> dict:
     return batch
 
 
-def prepare_device(n_gpu_use):
-    """
-    TODO
+def prepare_device(n_gpu_use: int) -> tuple[torch.device, list]:
+    """Prepare GPUs for training.
+
+    Note:
+        Supports multiple GPUs.
+
+    Args:
+        n_gpu_use: Number of GPUs to prepare.
+
+    Returns:
+        tuple: Device and list of available GPUs, if machine have multiple GPUs available.
     """
     num_gpu = torch.cuda.device_count()
     if n_gpu_use > 0 and num_gpu == 0:
@@ -36,7 +52,18 @@ def prepare_device(n_gpu_use):
     return device, list_ids
 
 
-def get_token_logits(device, data: torch.Tensor, logits: torch.Tensor, token_id: int) -> torch.Tensor:
+def get_token_logits(device: torch.device, data: torch.Tensor, logits: torch.Tensor, token_id: int) -> torch.Tensor:
+    """Get specific token logits in the data.
+
+    Args:
+        device: Device (GPU or CPU).
+        data: Model input data.
+        logits: Model logits.
+        token_id: Token id.
+
+    Returns:
+        torch.Tensor: All specific token logits in data.
+    """
     token_indexes = torch.nonzero(data == token_id)
     token_logits = torch.zeros(
         token_indexes.shape[0],
@@ -50,7 +77,17 @@ def get_token_logits(device, data: torch.Tensor, logits: torch.Tensor, token_id:
     return token_logits
 
 
-def plot_graphs(losses: dict, metrics: dict, conf: Config) -> None:
+def plot_graphs(losses: dict, metrics: dict, config: Config) -> None:
+    """Plot training graphics.
+
+    Args:
+        losses: Dictionary of training / validation losses by epoch.
+        metrics: Dictionary of training / validation metrics by epoch.
+        config: Training configuration.
+
+    Returns:
+        None
+    """
     tr_loss, vl_loss = losses["train"], losses["valid"]
 
     plt.plot(tr_loss)
@@ -58,9 +95,25 @@ def plot_graphs(losses: dict, metrics: dict, conf: Config) -> None:
     plt.legend(["Train loss", "Valid loss"])
     plt.show()
 
-    for metric in conf["metrics"]:
+    for metric in config["metrics"]:
         tr_f1, vl_f1 = metrics["train"][metric], metrics["valid"][metric]
         plt.plot(tr_f1)
         plt.plot(vl_f1)
         plt.legend([f"Train {metric}", f"Valid {metric}"])
         plt.show()
+
+
+def set_rs(seed: int = 13) -> None:
+    """Set random seed.
+
+    Args:
+        seed: Random seed.
+
+    Returns:
+        None
+    """
+    # Random seed
+    torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    np.random.seed(seed)

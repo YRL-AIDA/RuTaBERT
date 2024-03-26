@@ -8,8 +8,18 @@ from dataset.dataset import TableDataset
 
 
 class CtaDataLoader(DataLoader):
-    """
-    TODO:
+    """Data loader.
+
+    Combines train / validation samplers, and provides an iterable over
+    the given dataset.
+
+    Shuffles given dataset and splits into train / validation subsets.
+
+    Args:
+        dataset: dataset from which to load the data.
+        batch_size: how many samples per batch to load.
+        num_workers: how many subprocesses to use for data loading.
+        collate_fn: merges a list of samples to form a mini-batch of Tensors.
     """
     def __init__(
             self,
@@ -44,7 +54,15 @@ class CtaDataLoader(DataLoader):
             split: Union[int, float],
             dataset_ids: np.ndarray
     ) -> tuple[SubsetRandomSampler, SubsetRandomSampler]:
-        """Return train, valid samplers"""
+        """Create train / valid samplers.
+
+        Args:
+            split: Split size of the dataset, could be float (percentage of valid) or int (exact size of valid).
+            dataset_ids: Dataframe rows ids.
+
+        Returns:
+            tuple: Train and valid random samplers.
+        """
         if isinstance(split, int):
             assert 0 < split < self.num_samples
             len_valid = split
@@ -57,9 +75,10 @@ class CtaDataLoader(DataLoader):
 
         return SubsetRandomSampler(train_ids), SubsetRandomSampler(valid_ids)
 
-    def get_valid_dataloader(self):
-        """Return valid_dataloader"""
+    def get_valid_dataloader(self) -> DataLoader:
+        """Create dataloader of validation split."""
         assert self.valid_sampler is not None
+
         return DataLoader(sampler=self.valid_sampler, **self.init_kwargs)
 
 

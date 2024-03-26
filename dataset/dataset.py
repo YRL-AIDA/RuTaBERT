@@ -14,10 +14,20 @@ from itertools import chain
 
 
 class TableDataset(Dataset):
-    """
-    TODO:
-    """
+    """Wrapper class over the dataset.
 
+    Designed to store tables as a single sequence (DODUO approach).
+
+    Note:
+        The tokenized columns data is stored like: [CLS] token_11 token_12 ... [SEP] [CLS] token_21 ... [SEP]
+
+    Args:
+        data_dir: path to directory, where dataset .csv files placed.
+        tokenizer: pretrained BERT tokenizer instance.
+        num_rows: amount of how many rows to read per .csv file, if None read all rows.
+        transform: Optional transform to be applied on a sample
+        target_transform: Optional transform to be applied on a target.
+    """
     def __init__(
             self,
             data_dir: str,
@@ -47,11 +57,18 @@ class TableDataset(Dataset):
             "labels": self.df.iloc[idx]["labels"],
         }
 
-    # @staticmethod
     def read_multiple_csv(self, data_dir: str, num_rows: Optional[int] = None) -> pd.DataFrame:
-        """
-        TODO
-        :return:
+        """Read dataframe from multiple csv files.
+
+        If dataset was split into multiple files, it will be concatenated. Dataset is stored
+        in pd.Dataframe instance.
+
+        Args:
+            data_dir: path to directory, where dataset .csv files placed.
+            num_rows: amount of how many rows to read per .csv file, if None read all rows.
+
+        Returns:
+            pd.Dataframe: Entire dataset as dataframe.
         """
 
         df_list = []
@@ -69,7 +86,7 @@ class TableDataset(Dataset):
                 df_list.append(df)
             return pd.concat(df_list, axis=0)
         return pd.read_csv(
-            data_dir + f"data.csv",
+            data_dir + "data.csv",
             sep="|",
             engine="python",
             quotechar='"',
@@ -77,29 +94,37 @@ class TableDataset(Dataset):
             nrows=num_rows if num_rows is not None else None
         )
 
-    # @staticmethod
     def _create_dataset(self, df: pd.DataFrame, tokenizer: PreTrainedTokenizerBase) -> pd.DataFrame:
-        """
-        TODO
-        :return:
+        """Tokenize columns data.
+
+        Groups columns by table_id's and tokenizes columns data.
+
+        Tokenized columns are flatten into sequence, like so:
+
+        [CLS] token_11 token_12 ... [SEP] [CLS] token_21 ... [SEP]
+
+        Args:
+            df: Entire dataset as dataframe object.
+            tokenizer: Pretrained BERT tokenizer.
+
+        Returns:
+            pd.Dataframe: Dataset, grouped by tables and tokenized.
         """
 
         data_list = []
         for table_id, table in tqdm(df.groupby("table_id")):
             num_cols = len(table)
 
-            # Tokenize table columns
-            # TODO: move to collate, do it in a batch?
+            # Tokenize table columns.
             tokenized_table_columns = table["column_data"].apply(
                 lambda x: tokenizer.encode(
-                    # TODO: what if column is almost empty? then we reduce max_length for other columns.
                     # max_length for SINGLE COLUMN. Not for table as sequence.
-                    # BERT maximum input length = 512. So, max_length = (512 // num_cols)
-                    x, add_special_tokens=True, max_length=(512 // num_cols), truncation=True  # TODO: config
+                    # BERT maximum input length = 512. So, max_length = (512 // num_cols).
+                    x, add_special_tokens=True, max_length=(512 // num_cols), truncation=True
                 )
             ).tolist()
 
-            # Concat table columns into one sequence
+            # Concat table columns into one sequence.
             concat_tok_table_columns = list(chain.from_iterable(tokenized_table_columns))
             tokenized_columns_seq = torch.LongTensor(concat_tok_table_columns)
 

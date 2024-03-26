@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 import torch
 
@@ -15,16 +14,12 @@ from transformers import BertTokenizer, BertConfig, get_linear_schedule_with_war
 
 from config import Config
 from trainer.trainer import Trainer
-from utils.functions import prepare_device, collate, plot_graphs
-
-# Random seed
-torch.manual_seed(13)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-np.random.seed(13)
+from utils.functions import prepare_device, collate, plot_graphs, set_rs
 
 
 def train(config: Config):
+    set_rs(config["random_seed"])
+
     # TODO: assert config variables assigned and correct
     tokenizer = BertTokenizer.from_pretrained(config["pretrained_model_name"])
 
@@ -54,7 +49,6 @@ def train(config: Config):
         BertConfig.from_pretrained(config["pretrained_model_name"], num_labels=config["num_labels"])
     )
 
-    # TODO: multi-gpu support!
     device, device_ids = prepare_device(config["num_gpu"])
     model = model.to(device)
     if len(device_ids) > 1:
