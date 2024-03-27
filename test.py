@@ -1,5 +1,6 @@
-import numpy as np
 import torch
+
+from collections import OrderedDict
 
 from config import Config
 from dataset.colwise_dataset import ColWiseDataset
@@ -85,7 +86,15 @@ if __name__ == "__main__":
         BertConfig.from_pretrained(conf["pretrained_model_name"], num_labels=conf["num_labels"])
     )
     checkpoint = torch.load(conf["checkpoint_dir"] + conf["checkpoint_name"])
-    model.load_state_dict(checkpoint['model_state_dict'])
+
+    model_state_dict = checkpoint["model_state_dict"]
+    filtered_model_state_dict = OrderedDict()
+    for k, v in model_state_dict.items():
+        if k.startswith("module."):
+            filtered_model_state_dict[k[7:]] = v
+        else:
+            filtered_model_state_dict[k] = v
+    model.load_state_dict(filtered_model_state_dict)
 
     device, device_ids = prepare_device(conf["num_gpu"])
     model = model.to(device)
