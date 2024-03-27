@@ -1,7 +1,7 @@
 {
   "num_labels": 170,
-  "num_gpu": 3,
-  "save_period_in_epochs": 5,
+  "num_gpu": 4,
+  "save_period_in_epochs": 10,
   "metrics": ["f1_micro", "f1_macro", "f1_weighted"],
   "pretrained_model_name": "bert-base-multilingual-uncased",
   "table_serialization_type": "column_wise",
