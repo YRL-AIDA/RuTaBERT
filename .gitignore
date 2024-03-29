@@ -163,10 +163,12 @@ cython_debug/
 # --- Data ignores ---
 data/train/*.csv
 data/test/*.csv
+data/inference/*.csv
+data/inference/preprocessed/*
 data/*.zip
 
 # --- Checkpoints ---
-checkpoints/model_epoch*.pt
+checkpoints/model*.pt
 
 # --- Csv ---
 training_results.csv

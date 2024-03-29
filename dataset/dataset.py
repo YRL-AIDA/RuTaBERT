@@ -55,6 +55,7 @@ class TableDataset(Dataset):
         return {
             "data": self.df.iloc[idx]["data"],
             "labels": self.df.iloc[idx]["labels"],
+            "table_id": self.df.iloc[idx]["table_id"]
         }
 
     def read_multiple_csv(self, data_dir: str, num_rows: Optional[int] = None) -> pd.DataFrame:
