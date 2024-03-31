@@ -1,110 +1,183 @@
 # RuTaBERT
 Model for solving the problem of Column Type Annotation with BERT, trained on [russian corpus](https://github.com/STI-Team/RuTaBERT-Dataset).
 
+## Project structure
+```
+📦RuTaBERT
+ ┣ 📂checkpoints
+ ┃ ┗ Saved PyTorch models `.pt` 
+ ┣ 📂data
+ ┃ ┣ 📂inference
+ ┃ ┃ ┗ Tabels to inference `.csv`
+ ┃ ┣ 📂test
+ ┃ ┃ ┗ Test dataset files `.csv`
+ ┃ ┣ 📂train
+ ┃ ┃ ┗ Train dataset files `.csv`
+ ┃ ┗  Directory for storing dataset files.
+ ┣ 📂dataset
+ ┃ ┗  Dataset wrapper classes, dataloaders
+ ┣ 📂logs
+ ┃ ┗ Log files (train / test / error)
+ ┣ 📂model
+ ┃ ┗ Model and metrics
+ ┣ 📂trainer
+ ┃ ┗ Trainer
+ ┣ 📂utils
+ ┃ ┗ Helper functions
+ ┗ Entry points (train.py, test.py, inference.py), configuration, building files.
+```
+
+## Configuration
+The model configuration can be found in the file `config.json`.
+
+The configuratoin argument parameters are listed below:
+
+| argument    | description  |
+|-------------|-------------|
+|   num_labels   | Number of labels used for classification |
+|   num_gpu   | Number of GPUs to use |
+|   save_period_in_epochs   | Number characterizing with what periodicity the checkpoint is saved (in epochs) |
+|   metrics   | The classification metrics used are  |
+|  pretrained_model_name    | BERT shortcut name from HuggingFace  |
+|  table_serialization_type    | Method of serializing a table into a sequence |
+|  batch_size    | Batch size |
+|  num_epochs    | Number of training epochs |
+|  random_seed    | Random seed |
+|  logs_dir    | Directory for logging |
+|  train_log_filename    | File name for train logging  |
+|  test_log_filename    | File name for test logging |
+|  start_from_checkpoint    | Flag to start training from checkpoint |
+|  checkpoint_dir    | Directory for storing checkpoints of model |
+|  checkpoint_name    | File name of a checkpoint (model state) |
+|  inference_model_name    | File name of a model for inference |
+|  inference_dir    | Directory for storing inference tables `.csv` |
+|  dataloader.valid_split    | Amount of validation subset split |
+|  dataloader.num_workers    | Number of dataloader workers |
+|  dataset.num_rows    | Number of readable rows in the dataset, if `null` read all rows in files |
+|  dataset.data_dir    | Directory for storing train/test/inference files |
+|  dataset.train_path    | Directory for storing train dataset files `.csv` |
+|  dataset.test_path    | Direcotry for storing test dataset files `.csv` |
+
+We recomend to change ONLY theese parameters:
+- `num_gpu` - Any positive ingeter number + {0}. `0` stand for training / testing on CPU.
+- `save_period_in_epochs` - Any positive integer number, measures in epochs.
+- `table_serialization_type` - "column_wise" or "table_wise".
+- `pretrained_model_name` - BERT shorcut names from Huggingface PyTorch pretrained models.
+- `batch_size` - Any positive integer number.
+- `num_epochs` - Any positive integer number.
+- `random_seed` - Any integer number.
+- `start_from_checkpoint` - "true" or "false".
+- `checkpoint_name` - Any name of model, saved in `checkpoint` directory.
+- `inference_model_name` - Any name of model, saved in `checkpoint` directory. But we recommend to use the best models: [model_best_f1_weighted.pt, model_best_f1_macro.pt, model_best_f1_micro.pt].
+- `dataloader.valid_split` - Real number within range [0.0, 1.0] (0.0 stands for 0 % of train subset, 0.5 stands for 50 % of train subset). Or positive integer number (Denoting a fixed number of a validation subset).
+- `dataset.num_rows` - "null" stands for read all lines in dataset files. Positive integer means the number of lines to read in the files of the dataset.
+
+
 ## Dataset files
 Before training / testing the model you need to:
-1. move `data_*.csv` files from [dataset repository](https://github.com/STI-Team/RuTaBERT-Dataset/tree/main/dataset/cta_dataset/train) to `./data/train/`
-2. move `data.csv` file from [dataset repository](https://github.com/STI-Team/RuTaBERT-Dataset/tree/main/dataset/cta_dataset/test) to `./data/test/`
+1. Download [dataset repository](https://github.com/STI-Team/RuTaBERT-Dataset) in the same directory as RuTaBERT, example dir strucutre:
+```
+├── src
+│  ├── RuTaBERT
+│  ├── RuTaBERT-Dataset
+│  │  ├── move_dataset.sh
+```
+3. Run script `move_dataset.sh` from dataset reporitory, to move dataset files into RuTaBERT `data` directory:
+```bash
+RuTaBERT-Dataset$ ./move_dataset.sh
+```
+3. configure `config.json` file before training.
 
-## Configure config.json
-Don't forget to configure `config.json` file before training.
-
-## Training
-Run `train.py` file to start training locally or build docker container and run it (see instructions below).
 
 ---
 
-## Docker
+## Training / Testing
+RuTaBERT supports training / testing locally and inside Docker container. Also supports [slurm](https://slurm.schedmd.com/overview.html) workload manager.
 
-### Requirements:
-- Docker
+### Locally
+1. Create virtual environment:
+```bash
+RuTaBERT$ virtualenv venv
+```
+or
+```bash
+RuTaBERT$ python -m virtualenv venv
+```
+
+2. Install requirements and start train and test.
+```bash
+RuTaBERT$ source venv/bin/activate &&\
+    pip install -r requirements.txt &&\
+    python3 train.py 2> logs/error_train.log &&\
+    python3 test.py 2> logs/error_test.log
+```
+
+3. Models will be saved in `checkpoint` directory.
+4. Output will be in `logs/` directory (`training_results.csv`, `train.log`, `test.log`, `error_train.log`, `error_test.log`).
+
+### Docker
+Requirements:
+- [Docker installation guide (ubuntu)](https://docs.docker.com/engine/install/ubuntu/)
 - NVIDIA driver
-- [NVIDIA container toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html)
+- [NVIDIA Container Toolkit installation guide (ubuntu)](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
 
-### Docker installation (Ubuntu)
-Set up Docker's apt repository.
-
-```
-# Add Docker's official GPG key:
-sudo apt-get update
-sudo apt-get install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-# Add the repository to Apt sources:
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
+1. Make sure all dependencies are installed.
+2. Build image:
+```bash
+RuTaBERT$ sudo docker build -t rutabert .
 ```
 
-To install the latest version, run:
-```
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
-
-Verify:
-```
-sudo docker run hello-world
-```
-
-### Nvidia container toolkit installation (Ubuntu)
-Configure the production repository:
-
-```
-curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
-  && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
-    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-```
-
-Optionally, configure the repository to use experimental packages:
-```
-sed -i -e '/experimental/ s/^#//g' /etc/apt/sources.list.d/nvidia-container-toolkit.list
-```
-
-Update the packages list from the repository:
-```
-sudo apt-get update
-```
-
-Install the NVIDIA Container Toolkit packages:
-```
-sudo apt-get install -y nvidia-container-toolkit
-```
-
-Configure the container runtime by using the nvidia-ctk command:
-```
-sudo nvidia-ctk runtime configure --runtime=docker
-```
-The nvidia-ctk command modifies the `/etc/docker/daemon.json` file on the host. The file is updated so that Docker can use the NVIDIA Container Runtime.
-
-Restart the Docker daemon:
-```
-sudo systemctl restart docker
-```
-
-### Build image
-```
-sudo docker build -t rutabert .
-```
-
-### Run image
-```
-sudo docker run -d --runtime=nvidia --gpus=all \
+3. Run image
+```bash
+RuTaBERT$ sudo docker run -d --runtime=nvidia --gpus=all \
     --mount source=rutabert_logs,target=/app/rutabert/logs \
     --mount source=rutabert_checkpoints,target=/app/rutabert/checkpoints \
     rutabert
 ```
 
-### Move models and logs from container after training
-*Don't forget to remove volumes after training! Docker wont do it for you.*
-```
-sudo cp -r /var/lib/docker/volumes/rutabert_checkpoints/_data ./checkpoints
+4. Move models and logs from container after training / testing.
+```bash
+RuTaBERT$ sudo cp -r /var/lib/docker/volumes/rutabert_checkpoints/_data ./checkpoints
 ```
 
+```bash
+RuTaBERT$ sudo cp -r /var/lib/docker/volumes/rutabert_logs/_data ./logs
 ```
-sudo cp -r /var/lib/docker/volumes/rutabert_logs/_data ./logs
+
+5. *Don't forget to remove volumes after training! Docker wont do it for you.*
+6. Models will be saved in `checkpoint` directory.
+7. Output will be in `logs/` directory (`training_results.csv`, `train.log`, `test.log`, `error_train.log`, `error_test.log`).
+
+### Slurm
+1. Run slurm script:
+```bash
+RuTaBERT$ sbatch run.slurm
 ```
+2. Check job status:
+```bash
+RuTaBERT$ squeue
+```
+3. Models will be saved in `checkpoint` directory.
+4. Output will be in `logs/` directory (`train.log`, `test.log`, `error_train.log`, `error_test.log`).
+
+## Testing
+1. Make sure data placed in `data/test` directory.
+2. Configure which model to test in `config.json`.
+3. Run:
+```bash
+RuTaBERT$ source venv/bin/activate &&\
+    pip install -r requirements.txt &&\
+    python3 test.py 2> logs/error_test.log
+```
+4. Output will be in `logs/` directory (`test.log`, `error_test.log`).
+
+## Inference
+1. Make sure data placed in `data/inference` directory.
+2. Configure which model to inference in `config.json`
+3. Run:
+```bash
+RuTaBERT$ source venv/bin/activate &&\
+    pip install -r requirements.txt &&\
+    python3 inference.py
+```
+4. Labels will be in `data/inference/result.csv`
