@@ -143,8 +143,13 @@ class TableDataset(Dataset):
 
 
 if __name__ == "__main__":
+    from config import Config
+    config = Config(config_path="../config.json")
+
     t = TableDataset(
-        data_dir="../data",
+        data_dir="../" + config["dataset"]["data_dir"] + config["dataset"]["train_path"],
         tokenizer=BertTokenizer.from_pretrained("bert-base-multilingual-uncased"),
-        num_rows=1,
+        num_rows=100,
     )
+    print(t.df["data"].apply(lambda x: len(x)).max())
+
