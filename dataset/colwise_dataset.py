@@ -53,8 +53,8 @@ class ColWiseDataset(TableDataset):
             tokenized_table_columns = table["column_data"].apply(
                 lambda x: tokenizer.encode(
                     # max_length for SINGLE COLUMN. Not for table as sequence.
-                    # BERT maximum input length = 512. So, max_length = (512 // num_cols)
-                    x, add_special_tokens=False, max_length=(512 // num_cols), truncation=True
+                    # BERT maximum input length = 512. So, max_length = (512 // num_cols) - 2 (without special tokens)
+                    x, add_special_tokens=False, max_length=(512 // num_cols) - 2, truncation=True
                 )
             ).tolist()
 
@@ -89,6 +89,6 @@ if __name__ == "__main__":
     t = ColWiseDataset(
         data_dir="../" + config["dataset"]["data_dir"] + config["dataset"]["train_path"],
         tokenizer=BertTokenizer.from_pretrained("bert-base-multilingual-uncased"),
-        num_rows=10,
+        num_rows=None,
     )
-    print(t)
+    print(t.df["data"].apply(lambda x: len(x)).max())
