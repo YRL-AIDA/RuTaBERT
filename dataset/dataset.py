@@ -33,11 +33,22 @@ class TableDataset(Dataset):
             data_dir: str,
             tokenizer: PreTrainedTokenizerBase,
             num_rows: Optional[int],
+            file_name=None,
             transform=None,
             target_transform=None,
     ):
-        # Read dataset .csv files from ../data/train(test) dir:
-        df = self.read_multiple_csv(data_dir, num_rows)
+        # Read dataset .csv files
+        if file_name:
+            df = pd.read_csv(
+                data_dir + file_name,
+                sep="|",
+                engine="python",
+                quotechar='"',
+                on_bad_lines="warn",
+                nrows=num_rows if num_rows is not None else None
+            )
+        else:
+            df = self.read_multiple_csv(data_dir, num_rows)
 
         # Tokenize dataset with BERT tokenizer
         self.df = self._create_dataset(
