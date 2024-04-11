@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 import torch
 
@@ -117,3 +119,15 @@ def set_rs(seed: int = 13) -> None:
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     np.random.seed(seed)
+
+
+def get_map_location() -> Optional[torch.device]:
+    """Get device to perform model loading.
+
+    Returns:
+        Optional[torch.device]: device to perform load function.
+    """
+    map_location = None
+    if not torch.cuda.is_available():
+        map_location = torch.device("cpu")
+    return map_location

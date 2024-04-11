@@ -14,7 +14,7 @@ from model.model import BertForClassification
 
 from transformers import BertTokenizer, BertConfig
 
-from utils.functions import collate, prepare_device, get_token_logits, set_rs
+from utils.functions import collate, prepare_device, get_token_logits, set_rs, get_map_location
 
 
 def stat(
@@ -74,7 +74,8 @@ if __name__ == "__main__":
     model = BertForClassification(
         BertConfig.from_pretrained(conf["pretrained_model_name"], num_labels=conf["num_labels"])
     )
-    checkpoint = torch.load(conf["checkpoint_dir"] + conf["checkpoint_name"])
+
+    checkpoint = torch.load(conf["checkpoint_dir"] + conf["checkpoint_name"], map_location=get_map_location())
 
     model_state_dict = checkpoint["model_state_dict"]
     filtered_model_state_dict = OrderedDict()

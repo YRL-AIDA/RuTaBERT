@@ -10,7 +10,7 @@ from datetime import datetime
 
 from config import Config
 from logs.logger import Logger
-from utils.functions import get_token_logits
+from utils.functions import get_token_logits, get_map_location
 
 
 class Trainer:
@@ -290,7 +290,7 @@ class Trainer:
         Returns:
             None
         """
-        checkpoint = torch.load(checkpoint_path)
+        checkpoint = torch.load(checkpoint_path, map_location=get_map_location())
 
         self.start_epoch = checkpoint["epoch"] + 1
 
