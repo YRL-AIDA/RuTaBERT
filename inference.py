@@ -10,7 +10,7 @@ from config import Config
 from dataset.colwise_dataset import ColWiseDataset
 from dataset.dataset import TableDataset
 from model.model import BertForClassification
-from utils.functions import prepare_device, set_rs, get_token_logits, get_map_location
+from utils.functions import prepare_device, set_rs, get_token_logits, get_map_location, filter_model_state_dict
 
 
 class Inferencer:
@@ -52,14 +52,7 @@ class Inferencer:
             map_location=get_map_location()
         )
 
-        model_state_dict = checkpoint["model_state_dict"]
-        filtered_model_state_dict = OrderedDict()
-        for k, v in model_state_dict.items():
-            if k.startswith("module."):
-                filtered_model_state_dict[k[7:]] = v
-            else:
-                filtered_model_state_dict[k] = v
-        self.model.load_state_dict(filtered_model_state_dict)
+        self.model.load_state_dict(filter_model_state_dict(checkpoint["model_state_dict"]))
 
         self.device, device_ids = prepare_device(self.config["num_gpu"])
         self.model = self.model.to(self.device)

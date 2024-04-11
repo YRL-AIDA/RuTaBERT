@@ -1,5 +1,7 @@
 from typing import Optional
 
+from collections import OrderedDict
+
 import numpy as np
 import torch
 
@@ -131,3 +133,23 @@ def get_map_location() -> Optional[torch.device]:
     if not torch.cuda.is_available():
         map_location = torch.device("cpu")
     return map_location
+
+
+def filter_model_state_dict(model_state_dict: dict) -> OrderedDict:
+    """Filter model state dict keys.
+
+    Filters model state dict keys after training with torch.DataParallel on multiple GPUs.
+
+    Args:
+        model_state_dict: PyTorch model state dictionary.
+
+    Returns:
+        OrderedDict: model state dict without `model` in keys, inserted by torch.DataParallel
+    """
+    filtered_model_state_dict = OrderedDict()
+    for k, v in model_state_dict.items():
+        if k.startswith("module."):
+            filtered_model_state_dict[k[7:]] = v
+        else:
+            filtered_model_state_dict[k] = v
+    return filtered_model_state_dict
