@@ -162,19 +162,35 @@ RuTaBERT$ squeue
 
 ## Testing
 1. Make sure data placed in `data/test` directory.
-2. Configure which model to test in `config.json`.
-3. Run:
+2. _(Optional)_ Download pre-trained models:
+```bash
+RuTaBERT$ ./download.sh table_wise
+```
+or
+```bash
+RuTaBERT$ ./download.sh column_wise
+```
+3. Configure which model to test in `config.json`.
+4. Run:
 ```bash
 RuTaBERT$ source venv/bin/activate &&\
     pip install -r requirements.txt &&\
     python3 test.py 2> logs/error_test.log
 ```
-4. Output will be in `logs/` directory (`test.log`, `error_test.log`).
+5. Output will be in `logs/` directory (`test.log`, `error_test.log`).
 
 ## Inference
 1. Make sure data placed in `data/inference` directory.
-2. Configure which model to inference in `config.json`
-3. Run:
+2. _(Optional)_ Download pre-trained models:
+```bash
+RuTaBERT$ ./download.sh table_wise
+```
+or
+```bash
+RuTaBERT$ ./download.sh column_wise
+```
+3. Configure which model to inference in `config.json`
+4. Run:
 ```bash
 RuTaBERT$ source venv/bin/activate &&\
     pip install -r requirements.txt &&\
