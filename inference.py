@@ -10,7 +10,7 @@ from config import Config
 from dataset.colwise_dataset import ColWiseDataset
 from dataset.dataset import TableDataset
 from model.model import BertForClassification
-from utils.functions import prepare_device, set_rs, get_token_logits
+from utils.functions import prepare_device, set_rs, get_token_logits, get_map_location, filter_model_state_dict
 
 
 class Inferencer:
@@ -46,15 +46,13 @@ class Inferencer:
         self.model = BertForClassification(
             BertConfig.from_pretrained(self.config["pretrained_model_name"], num_labels=self.config["num_labels"])
         )
-        checkpoint = torch.load(self.config["checkpoint_dir"] + self.config["inference_model_name"])
-        model_state_dict = checkpoint["model_state_dict"]
-        filtered_model_state_dict = OrderedDict()
-        for k, v in model_state_dict.items():
-            if k.startswith("module."):
-                filtered_model_state_dict[k[7:]] = v
-            else:
-                filtered_model_state_dict[k] = v
-        self.model.load_state_dict(filtered_model_state_dict)
+
+        checkpoint = torch.load(
+            self.config["checkpoint_dir"] + self.config["inference_model_name"],
+            map_location=get_map_location()
+        )
+
+        self.model.load_state_dict(filter_model_state_dict(checkpoint["model_state_dict"]))
 
         self.device, device_ids = prepare_device(self.config["num_gpu"])
         self.model = self.model.to(self.device)

@@ -12,7 +12,7 @@ from model.model import BertForClassification
 
 from transformers import BertTokenizer, BertConfig
 
-from utils.functions import collate, prepare_device, get_token_logits, set_rs
+from utils.functions import collate, prepare_device, get_token_logits, set_rs, get_map_location, filter_model_state_dict
 
 
 def test(
@@ -85,16 +85,10 @@ if __name__ == "__main__":
     model = BertForClassification(
         BertConfig.from_pretrained(conf["pretrained_model_name"], num_labels=conf["num_labels"])
     )
-    checkpoint = torch.load(conf["checkpoint_dir"] + conf["checkpoint_name"])
 
-    model_state_dict = checkpoint["model_state_dict"]
-    filtered_model_state_dict = OrderedDict()
-    for k, v in model_state_dict.items():
-        if k.startswith("module."):
-            filtered_model_state_dict[k[7:]] = v
-        else:
-            filtered_model_state_dict[k] = v
-    model.load_state_dict(filtered_model_state_dict)
+    checkpoint = torch.load(conf["checkpoint_dir"] + conf["checkpoint_name"], map_location=get_map_location())
+
+    model.load_state_dict(filter_model_state_dict(checkpoint["model_state_dict"]))
 
     device, device_ids = prepare_device(conf["num_gpu"])
     model = model.to(device)
