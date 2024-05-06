@@ -1,18 +1,15 @@
 import torch
 
-from collections import OrderedDict
-
 from config import Config
-from dataset.colwise_dataset import ColWiseDataset
 from dataset.dataloader import CtaDataLoader
-from dataset.dataset import TableDataset
 from logs.logger import Logger
 from model.metric import multiple_f1_score
 from model.model import BertForClassification
 
 from transformers import BertTokenizer, BertConfig
 
-from utils.functions import collate, prepare_device, get_token_logits, set_rs, get_map_location, filter_model_state_dict
+from utils.functions import collate, prepare_device, get_token_logits, set_rs, get_map_location, \
+    filter_model_state_dict, get_dataset_type
 
 
 def test(
@@ -62,14 +59,7 @@ if __name__ == "__main__":
 
     tokenizer = BertTokenizer.from_pretrained(conf["pretrained_model_name"])
 
-    table_serialization_type_dataset = {
-        "table_wise": TableDataset,
-        "column_wise": ColWiseDataset
-    }
-    dataset_type = table_serialization_type_dataset.get(
-        conf["table_serialization_type"],
-        TableDataset
-    )
+    dataset_type = get_dataset_type(conf["table_serialization_type"])
     dataset = dataset_type(
         tokenizer=tokenizer,
         num_rows=conf["dataset"]["num_rows"],
