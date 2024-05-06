@@ -1,8 +1,6 @@
 import pandas as pd
 import torch
 
-from dataset.colwise_dataset import ColWiseDataset
-from dataset.dataset import TableDataset
 from dataset.dataloader import CtaDataLoader
 
 from logs.logger import Logger
@@ -14,7 +12,7 @@ from transformers import BertTokenizer, BertConfig, get_linear_schedule_with_war
 
 from config import Config
 from trainer.trainer import Trainer
-from utils.functions import prepare_device, collate, plot_graphs, set_rs
+from utils.functions import prepare_device, collate, plot_graphs, set_rs, get_dataset_type
 
 
 def train(config: Config):
@@ -23,14 +21,7 @@ def train(config: Config):
     # TODO: assert config variables assigned and correct
     tokenizer = BertTokenizer.from_pretrained(config["pretrained_model_name"])
 
-    table_serialization_type_dataset = {
-        "table_wise": TableDataset,
-        "column_wise": ColWiseDataset
-    }
-    dataset_type = table_serialization_type_dataset.get(
-        config["table_serialization_type"],
-        TableDataset
-    )
+    dataset_type = get_dataset_type(config["table_serialization_type"])
     dataset = dataset_type(
         tokenizer=tokenizer,
         num_rows=config["dataset"]["num_rows"],

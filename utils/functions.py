@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Type
 
 from collections import OrderedDict
 
@@ -8,6 +8,9 @@ import torch
 import matplotlib.pyplot as plt
 
 from config import Config
+from dataset.colwise_dataset import ColWiseDataset
+from dataset.dataset import TableDataset
+from dataset.single_column_dataset import SingleColumnDataset
 
 
 def collate(samples: list) -> dict:
@@ -153,3 +156,31 @@ def filter_model_state_dict(model_state_dict: dict) -> OrderedDict:
         else:
             filtered_model_state_dict[k] = v
     return filtered_model_state_dict
+
+
+def get_dataset_type(table_serialization_strategy: str) -> Type[TableDataset | ColWiseDataset | SingleColumnDataset]:
+    """Get type of dataset by strategy.
+
+    Note:
+        Available table serialization strategy names:
+            - *table_wise*
+            - *column_wise*
+            - *single_column*
+
+    Args:
+        table_serialization_strategy: Name of strategy.
+
+    Returns:
+        Type: Type of dataset, if undefined returns `table_wise` dataset.
+    """
+    table_serialization_type_dataset = {
+        "table_wise": TableDataset,
+        "column_wise": ColWiseDataset,
+        "single_column": SingleColumnDataset
+    }
+
+    dataset = table_serialization_type_dataset.get(
+        table_serialization_strategy,
+        TableDataset
+    )
+    return dataset

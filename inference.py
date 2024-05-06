@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from pathlib import Path
 
 import pandas as pd
@@ -7,10 +6,9 @@ import torch
 from transformers import BertTokenizer, BertConfig
 
 from config import Config
-from dataset.colwise_dataset import ColWiseDataset
-from dataset.dataset import TableDataset
 from model.model import BertForClassification
-from utils.functions import prepare_device, set_rs, get_token_logits, get_map_location, filter_model_state_dict
+from utils.functions import prepare_device, set_rs, get_token_logits, get_map_location, filter_model_state_dict, \
+    get_dataset_type
 
 
 class Inferencer:
@@ -26,14 +24,7 @@ class Inferencer:
 
         self.tokenizer = BertTokenizer.from_pretrained(self.config["pretrained_model_name"])
 
-        table_serialization_type_dataset = {
-            "table_wise": TableDataset,
-            "column_wise": ColWiseDataset
-        }
-        dataset_type = table_serialization_type_dataset.get(
-            self.config["table_serialization_type"],
-            TableDataset
-        )
+        dataset_type = get_dataset_type(self.config["table_serialization_type"])
 
         self.preprocess_tables()
 
