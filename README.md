@@ -1,6 +1,18 @@
 # RuTaBERT
 Model for solving the problem of Column Type Annotation with BERT, trained on [russian corpus](https://github.com/STI-Team/RuTaBERT-Dataset).
 
+## Table of contents
+- [RuTaBERT](#rutabert)
+  * [Project structure](#project-structure)
+  * [Configuration](#configuration)
+  * [Dataset files](#dataset-files)
+  * [Training](#training)
+    + [Locally](#locally)
+    + [Docker](#docker)
+    + [Slurm](#slurm)
+  * [Testing](#testing)
+  * [Inference](#inference)
+
 ## Project structure
 ```
 📦RuTaBERT
@@ -91,7 +103,7 @@ RuTaBERT-Dataset$ ./move_dataset.sh
 
 ---
 
-## Training / Testing
+## Training
 RuTaBERT supports training / testing locally and inside Docker container. Also supports [slurm](https://slurm.schedmd.com/overview.html) workload manager.
 
 ### Locally
