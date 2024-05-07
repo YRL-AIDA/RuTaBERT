@@ -161,16 +161,25 @@ RuTaBERT$ sudo cp -r /var/lib/docker/volumes/rutabert_logs/_data ./logs
 7. Output will be in `logs/` directory (`training_results.csv`, `train.log`, `test.log`, `error_train.log`, `error_test.log`).
 
 ### Slurm
-1. Run slurm script:
+1. Create virtual environment:
+```bash
+RuTaBERT$ virtualenv venv
+```
+or
+```bash
+RuTaBERT$ python -m virtualenv venv
+```
+
+2. Run slurm script:
 ```bash
 RuTaBERT$ sbatch run.slurm
 ```
-2. Check job status:
+3. Check job status:
 ```bash
 RuTaBERT$ squeue
 ```
-3. Models will be saved in `checkpoint` directory.
-4. Output will be in `logs/` directory (`train.log`, `test.log`, `error_train.log`, `error_test.log`).
+4. Models will be saved in `checkpoint` directory.
+5. Output will be in `logs/` directory (`train.log`, `test.log`, `error_train.log`, `error_test.log`).
 
 ## Testing
 1. Make sure data placed in `data/test` directory.
