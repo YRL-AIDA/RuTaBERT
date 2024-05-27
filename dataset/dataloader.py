@@ -1,6 +1,8 @@
 from typing import Optional, Union
 
 import numpy as np
+import pandas
+import pandas as pd
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 
@@ -31,6 +33,7 @@ class CtaDataLoader(DataLoader):
     ):
         self.split = split
         self.num_samples = len(dataset)
+        self.num_tables = dataset.df["table_id"].unique().shape[0]
         self.shuffle = False
 
         dataset_ids = np.arange(self.num_samples)
@@ -38,7 +41,7 @@ class CtaDataLoader(DataLoader):
         if split == 0.0:
             self.train_sampler = SubsetRandomSampler(dataset_ids)
         else:
-            self.train_sampler, self.valid_sampler = self._get_samplers(self.split, dataset_ids)
+            self.train_sampler, self.valid_sampler = self._get_samplers(self.split, dataset_ids, dataset.df)
 
         self.init_kwargs = {
             'dataset': dataset,
@@ -52,7 +55,8 @@ class CtaDataLoader(DataLoader):
     def _get_samplers(
             self,
             split: Union[int, float],
-            dataset_ids: np.ndarray
+            dataset_ids: np.ndarray,
+            dataset: pandas.DataFrame
     ) -> tuple[SubsetRandomSampler, SubsetRandomSampler]:
         """Create train / valid samplers.
 
@@ -64,13 +68,20 @@ class CtaDataLoader(DataLoader):
             tuple: Train and valid random samplers.
         """
         if isinstance(split, int):
-            assert 0 < split < self.num_samples
+            assert 0 < split < self.num_tables
             len_valid = split
         else:
-            len_valid = int(self.num_samples * split)
+            len_valid = int(self.num_tables * split)
 
-        valid_ids = dataset_ids[0:len_valid]
-        train_ids = np.delete(dataset_ids, np.arange(0, len_valid))
+        valid_mask = pd.Series(dataset["table_id"].unique()).sample(n=len_valid, random_state=14)
+        valid_df = dataset[dataset["table_id"].isin(valid_mask)]
+        valid_ids = valid_df.index.to_numpy()
+
+        train_df = dataset[~dataset["table_id"].isin(valid_mask)]
+        train_ids = train_df.index.to_numpy()
+
+        # valid_ids = dataset_ids[0:len_valid]
+        # train_ids = np.delete(dataset_ids, np.arange(0, len_valid))
         self.num_samples = len(train_ids)
 
         return SubsetRandomSampler(train_ids), SubsetRandomSampler(valid_ids)
