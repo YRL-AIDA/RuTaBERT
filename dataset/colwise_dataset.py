@@ -25,8 +25,8 @@ class ColWiseDataset(TableDataset):
         num_rows: amount of how many rows to read per .csv file, if None read all rows.
     """
 
-    def __init__(self, data_dir: str, tokenizer: PreTrainedTokenizerBase, num_rows: Optional[int]):
-        super().__init__(data_dir, tokenizer, num_rows)
+    def __init__(self, data_dir: str, tokenizer: PreTrainedTokenizerBase, num_rows: Optional[int], file_name):
+        super().__init__(data_dir, tokenizer, num_rows, file_name)
 
     def _create_dataset(self, df: pd.DataFrame, tokenizer: PreTrainedTokenizerBase) -> pd.DataFrame:
         """Tokenize columns data.
