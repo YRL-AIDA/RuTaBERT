@@ -1,8 +1,15 @@
 # RuTaBERT
-Model for solving the problem of Column Type Annotation with BERT, trained on [russian corpus](https://github.com/STI-Team/RuTaBERT-Dataset).
+Model for solving the problem of Column Type Annotation with BERT, trained on [RWT-RuTaBERT](https://github.com/STI-Team/RuTaBERT-Dataset) dataset.
+
+RWT-RuTaBERT dataset contains `1 441 349` columns from Russian language Wikipedia tables. With headers matching **170** DBpedia semantic types. It has fixed train / test split:
+| Split | Columns   | Tables  | Avg. columns per table |
+|-------|-----------| ------- | ---------------------- |
+| Test  | 115 448   | 55 080  | 2.096                  |
+| Train | 1 325 901 | 633 426 | 2.093                  |
 
 ## Table of contents
 - [RuTaBERT](#rutabert)
+  * [Benchmark](#benchmark)
   * [Project structure](#project-structure)
   * [Configuration](#configuration)
   * [Dataset files](#dataset-files)
@@ -12,6 +19,29 @@ Model for solving the problem of Column Type Annotation with BERT, trained on [r
     + [Slurm](#slurm)
   * [Testing](#testing)
   * [Inference](#inference)
+
+## Benchmark
+We trained RuTaBERT with two table serialization strategies:
+1. Neighboring column serialization;
+2. Multi-column serialization ([based on Doduo's approach](https://github.com/megagonlabs/doduo);
+
+Benchmark results on RWT-RuTaBERT dataset:
+| Serialization strategy | micro-F1  | macro-F1  | weighted-F1 |
+| ---------------------- | --------  | --------  | ----------- |
+| Multi-column           | 0.962     | 0.891     | 0.9621      |
+| Neighboring column     | **0.964** | **0.904** | **0.9639**  |
+
+Training parameters:
+| Parameter        | Value                    |
+| ---------------  | -----                    |
+| batch size       | 32                       |
+| epochs           | 30                       |
+| Loss function    | Cross-entropy            |
+| GD Optimizer     | AdamW(lr=5e-5, eps=1e-8) |
+| GPU's            | 4 NVIDIA A100 (80 GB)    |
+| random seed      | 2024                     |
+| validation split | 5%                       |
+
 
 ## Project structure
 ```
