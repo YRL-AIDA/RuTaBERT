@@ -84,7 +84,7 @@ if __name__ == "__main__":
         f.name for f in Path(conf["dataset"]["data_dir"] + "stats/labels/").iterdir()
         if f.is_file() and f.name.endswith(".csv")
     ]
-    for file_name in files[:3]:
+    for file_name in files:
         dataset = dataset_type(
             tokenizer=tokenizer,
             num_rows=conf["dataset"]["num_rows"],
@@ -121,44 +121,44 @@ if __name__ == "__main__":
         for metric in conf["metrics"]:
             logger.info(f"{metric} = {loss_metrics['metrics'][metric]}", "METRIC")
 
-    # Log top 5 / least 5 labels
+    # Log top/least 5 labels
     num_tops = 5
     top_labels_micro = OrderedDict(sorted(top_labels.items(), key=lambda item: item[1][1]))
-    logger.info(f"--- top 5 micro ---", "TOP")
+    logger.info(f"--- least 5 micro ---", "TOP")
     t = list(top_labels_micro)
     for k in t[:num_tops]:
         logger.info(f"{k} / {top_labels_micro[k]}", "TOP")
 
-    logger.info(f"--- least 5 micro ---", "TOP")
+    logger.info(f"--- top 5 micro ---", "TOP")
     t.reverse()
     for k in t[:num_tops]:
         logger.info(f"{k} / {top_labels_micro[k]}", "TOP")
 
     top_labels_macro = OrderedDict(sorted(top_labels.items(), key=lambda item: item[1][2]))
-    logger.info(f"--- top 5 macro ---", "TOP")
+    logger.info(f"--- least 5 macro ---", "TOP")
     t = list(top_labels_macro)
     for k in t[:num_tops]:
         logger.info(f"{k} / {top_labels_macro[k]}", "TOP")
 
-    logger.info(f"--- least 5 macro ---", "TOP")
+    logger.info(f"--- top 5 macro ---", "TOP")
     t.reverse()
     for k in t[:num_tops]:
         logger.info(f"{k} / {top_labels_macro[k]}", "TOP")
 
     top_labels_weighted = OrderedDict(sorted(top_labels.items(), key=lambda item: item[1][3]))
-    logger.info(f"--- top 5 weighted ---", "TOP")
+    logger.info(f"--- least 5 weighted ---", "TOP")
     t = list(top_labels_weighted)
     for k in t[:num_tops]:
         logger.info(f"{k} / {top_labels_weighted[k]}", "TOP")
 
-    logger.info(f"--- least 5 weighted ---", "TOP")
+    logger.info(f"--- top 5 weighted ---", "TOP")
     t.reverse()
     for k in t[:num_tops]:
         logger.info(f"{k} / {top_labels_weighted[k]}", "TOP")
 
     # date, numeric, ...
     labels = ["date.csv", "long_text.csv", "numeric.csv", "persons.csv", "short_text.csv", "url.csv"]
-    for file_name in labels[-1:]:
+    for file_name in labels:
         dataset = dataset_type(
             tokenizer=tokenizer,
             num_rows=conf["dataset"]["num_rows"],
