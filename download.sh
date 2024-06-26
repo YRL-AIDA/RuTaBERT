@@ -18,4 +18,4 @@ echo Downloading $file_name...;
 # Download models
 curl "$download_link" > $file_name;
 mv $file_name ./checkpoints;
-#cd checkpoints && tar -xvf $file_name;
+cd checkpoints && tar -xvf $file_name;
