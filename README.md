@@ -23,7 +23,7 @@ RWT-RuTaBERT dataset contains `1 441 349` columns from Russian language Wikipedi
 ## Benchmark
 We trained RuTaBERT with two table serialization strategies:
 1. Neighboring column serialization;
-2. Multi-column serialization ([based on Doduo's approach](https://github.com/megagonlabs/doduo);
+2. Multi-column serialization ([based on Doduo's approach](https://github.com/megagonlabs/doduo));
 
 Benchmark results on RWT-RuTaBERT dataset:
 | Serialization strategy | micro-F1  | macro-F1  | weighted-F1 |
@@ -66,7 +66,7 @@ Training parameters:
  ┃ ┗ Trainer
  ┣ 📂utils
  ┃ ┗ Helper functions
- ┗ Entry points (train.py, test.py, inference.py), configuration, building files.
+ ┗ Entry points (train.py, test.py, inference.py), configuration, etc.
 ```
 
 ## Configuration
@@ -117,14 +117,14 @@ We recomend to change ONLY theese parameters:
 
 ## Dataset files
 Before training / testing the model you need to:
-1. Download [dataset repository](https://github.com/STI-Team/RuTaBERT-Dataset) in the same directory as RuTaBERT, example dir strucutre:
+1. Download [dataset repository](https://github.com/STI-Team/RuTaBERT-Dataset) in the same directory as RuTaBERT, example source directory strucutre:
 ```
 ├── src
 │  ├── RuTaBERT
 │  ├── RuTaBERT-Dataset
 │  │  ├── move_dataset.sh
 ```
-3. Run script `move_dataset.sh` from dataset reporitory, to move dataset files into RuTaBERT `data` directory:
+3. Run script `move_dataset.sh` from dataset repository, to move dataset files into RuTaBERT `data` directory:
 ```bash
 RuTaBERT-Dataset$ ./move_dataset.sh
 ```
@@ -159,9 +159,9 @@ RuTaBERT$ source venv/bin/activate &&\
 
 ### Docker
 Requirements:
-- [Docker installation guide (ubuntu)](https://docs.docker.com/engine/install/ubuntu/)
-- NVIDIA driver
-- [NVIDIA Container Toolkit installation guide (ubuntu)](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+- [Docker installation guide (ubuntu)](https://docs.docker.com/engine/install/ubuntu/);
+- NVIDIA driver;
+- [NVIDIA Container Toolkit installation guide (ubuntu)](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html);
 
 1. Make sure all dependencies are installed.
 2. Build image:
