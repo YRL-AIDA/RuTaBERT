@@ -31,7 +31,8 @@ class Inferencer:
         self.dataset = dataset_type(
             tokenizer=self.tokenizer,
             num_rows=self.config["dataset"]["num_rows"],
-            data_dir=self.config["dataset"]["data_dir"] + "inference/preprocessed/"
+            data_dir=self.config["dataset"]["data_dir"] + "inference/preprocessed/",
+            file_name=None
         )
 
         self.model = BertForClassification(
@@ -116,20 +117,27 @@ class Inferencer:
             f for f in Path(self.directory).iterdir()
             if f.is_file() and f.name.endswith(".csv") and f.name != "result.csv"
         ]
-        for i, file_name in enumerate(files):
-            self.preprocess_table(file_name.name, idx=i)
 
-    def preprocess_table(self, filename: str, idx: int):
+        preprocessed_dir = self.directory + "preprocessed/"
+        Path(preprocessed_dir).mkdir(parents=True, exist_ok=True)
+        if len(files) == 1:
+            preprocessed_table = self.preprocess_table(files[0].name)
+            preprocessed_table.to_csv(f"{preprocessed_dir}/data.csv", index=False, sep="|")
+        else:
+            for i, file_name in enumerate(files):
+                preprocessed_table = self.preprocess_table(file_name.name)
+                preprocessed_table.to_csv(f"{preprocessed_dir}/data_{i}.csv", index=False, sep="|")
+
+    def preprocess_table(self, filename: str):
         """Preprocess table.
 
         Preprocess given table and save in `data/inference/preprocess/` directory.
 
         Args:
             filename: Table filename.
-            idx: Index of current table.
 
         Returns:
-            None
+            pd.DataFrame: Table as dataframe.
         """
         table = pd.read_csv(f"{self.directory}{filename}", header=None)
 
@@ -139,18 +147,13 @@ class Inferencer:
             label_id = 0
             label = "none"
             column_data = " ".join(list(map(lambda x: str(x).strip(), table[i])))
-            data_list.append([
-                filename, column_id, label_id, label, column_data
-            ])
+            data_list.append([filename, column_id, label_id, label, column_data])
 
         preprocessed_table = pd.DataFrame(
             data_list,
             columns=["table_id", "column_id", "label_id", "label", "column_data"]
         )
-
-        preprocessed_dir = self.directory + "preprocessed/"
-        Path(preprocessed_dir).mkdir(parents=True, exist_ok=True)
-        preprocessed_table.to_csv(f"{preprocessed_dir}/data_{idx}.csv", index=False, sep="|")
+        return preprocessed_table
 
 
 if __name__ == "__main__":
