@@ -1,8 +1,15 @@
 # RuTaBERT
-Model for solving the problem of Column Type Annotation with BERT, trained on [russian corpus](https://github.com/STI-Team/RuTaBERT-Dataset).
+Model for solving the problem of Column Type Annotation with BERT, trained on [RWT-RuTaBERT](https://github.com/STI-Team/RuTaBERT-Dataset) dataset.
+
+RWT-RuTaBERT dataset contains `1 441 349` columns from Russian language Wikipedia tables. With headers matching **170** DBpedia semantic types. It has fixed train / test split:
+| Split | Columns   | Tables  | Avg. columns per table |
+|-------|-----------| ------- | ---------------------- |
+| Test  | 115 448   | 55 080  | 2.096                  |
+| Train | 1 325 901 | 633 426 | 2.093                  |
 
 ## Table of contents
 - [RuTaBERT](#rutabert)
+  * [Benchmark](#benchmark)
   * [Project structure](#project-structure)
   * [Configuration](#configuration)
   * [Dataset files](#dataset-files)
@@ -12,6 +19,29 @@ Model for solving the problem of Column Type Annotation with BERT, trained on [r
     + [Slurm](#slurm)
   * [Testing](#testing)
   * [Inference](#inference)
+
+## Benchmark
+We trained RuTaBERT with two table serialization strategies:
+1. Neighboring column serialization;
+2. Multi-column serialization ([based on Doduo's approach](https://github.com/megagonlabs/doduo));
+
+Benchmark results on RWT-RuTaBERT dataset:
+| Serialization strategy | micro-F1  | macro-F1  | weighted-F1 |
+| ---------------------- | --------  | --------  | ----------- |
+| Multi-column           | 0.962     | 0.891     | 0.9621      |
+| Neighboring column     | **0.964** | **0.904** | **0.9639**  |
+
+Training parameters:
+| Parameter        | Value                    |
+| ---------------  | -----                    |
+| batch size       | 32                       |
+| epochs           | 30                       |
+| Loss function    | Cross-entropy            |
+| GD Optimizer     | AdamW(lr=5e-5, eps=1e-8) |
+| GPU's            | 4 NVIDIA A100 (80 GB)    |
+| random seed      | 2024                     |
+| validation split | 5%                       |
+
 
 ## Project structure
 ```
@@ -36,7 +66,7 @@ Model for solving the problem of Column Type Annotation with BERT, trained on [r
  ┃ ┗ Trainer
  ┣ 📂utils
  ┃ ┗ Helper functions
- ┗ Entry points (train.py, test.py, inference.py), configuration, building files.
+ ┗ Entry points (train.py, test.py, inference.py), configuration, etc.
 ```
 
 ## Configuration
@@ -87,14 +117,14 @@ We recomend to change ONLY theese parameters:
 
 ## Dataset files
 Before training / testing the model you need to:
-1. Download [dataset repository](https://github.com/STI-Team/RuTaBERT-Dataset) in the same directory as RuTaBERT, example dir strucutre:
+1. Download [dataset repository](https://github.com/STI-Team/RuTaBERT-Dataset) in the same directory as RuTaBERT, example source directory strucutre:
 ```
 ├── src
 │  ├── RuTaBERT
 │  ├── RuTaBERT-Dataset
 │  │  ├── move_dataset.sh
 ```
-3. Run script `move_dataset.sh` from dataset reporitory, to move dataset files into RuTaBERT `data` directory:
+3. Run script `move_dataset.sh` from dataset repository, to move dataset files into RuTaBERT `data` directory:
 ```bash
 RuTaBERT-Dataset$ ./move_dataset.sh
 ```
@@ -129,9 +159,9 @@ RuTaBERT$ source venv/bin/activate &&\
 
 ### Docker
 Requirements:
-- [Docker installation guide (ubuntu)](https://docs.docker.com/engine/install/ubuntu/)
-- NVIDIA driver
-- [NVIDIA Container Toolkit installation guide (ubuntu)](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+- [Docker installation guide (ubuntu)](https://docs.docker.com/engine/install/ubuntu/);
+- NVIDIA driver;
+- [NVIDIA Container Toolkit installation guide (ubuntu)](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html);
 
 1. Make sure all dependencies are installed.
 2. Build image:
@@ -161,16 +191,25 @@ RuTaBERT$ sudo cp -r /var/lib/docker/volumes/rutabert_logs/_data ./logs
 7. Output will be in `logs/` directory (`training_results.csv`, `train.log`, `test.log`, `error_train.log`, `error_test.log`).
 
 ### Slurm
-1. Run slurm script:
+1. Create virtual environment:
+```bash
+RuTaBERT$ virtualenv venv
+```
+or
+```bash
+RuTaBERT$ python -m virtualenv venv
+```
+
+2. Run slurm script:
 ```bash
 RuTaBERT$ sbatch run.slurm
 ```
-2. Check job status:
+3. Check job status:
 ```bash
 RuTaBERT$ squeue
 ```
-3. Models will be saved in `checkpoint` directory.
-4. Output will be in `logs/` directory (`train.log`, `test.log`, `error_train.log`, `error_test.log`).
+4. Models will be saved in `checkpoint` directory.
+5. Output will be in `logs/` directory (`train.log`, `test.log`, `error_train.log`, `error_test.log`).
 
 ## Testing
 1. Make sure data placed in `data/test` directory.
