@@ -3,6 +3,8 @@
 declare file_name;
 declare download_link;
 
+cd checkpoints || exit;
+
 if [ "$1" == "table_wise" ];
 then
   file_name="rutabert_table_wise.tar.gz";
@@ -13,9 +15,7 @@ elif [ "$1" == "column_wise" ]; then
 else echo "Undefined download parameter."; exit;
 fi
 
-echo Downloading $file_name...;
-
 # Download models
+echo Downloading $file_name...;
 curl "$download_link" > $file_name;
-mv $file_name ./checkpoints;
-cd checkpoints && tar -xvf $file_name;
+tar --transform="s/best_f1_weighted/$1/" -xf $file_name;
