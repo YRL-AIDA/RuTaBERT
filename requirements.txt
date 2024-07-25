@@ -43,7 +43,7 @@ safetensors==0.4.2
 six==1.16.0
 sympy==1.12
 tokenizers==0.15.1
-torch==2.1.2
+torch==2.2.0
 torcheval==0.0.7
 tqdm==4.66.3
 transformers==4.38.0
