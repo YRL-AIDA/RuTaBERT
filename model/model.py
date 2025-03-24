@@ -1,9 +1,10 @@
-from transformers import BertPreTrainedModel, BertModel
+from transformers import BertPreTrainedModel
+from transformers import AutoConfig, AutoModel
 
 import torch.nn as nn
 
 
-class BertForClassification(BertPreTrainedModel):
+class RuTaBERT(BertPreTrainedModel):
     """BERT model for `Column Table Annotation` task.
 
     Args:
@@ -11,13 +12,13 @@ class BertForClassification(BertPreTrainedModel):
     """
 
     def __init__(self, config):
-        super().__init__(config)
+        super().__init__(AutoConfig.from_pretrained(config["pretrained_model_name"]))
 
-        self.num_labels = config.num_labels
+        self.num_labels = config["num_labels"]
 
-        self.bert = BertModel(config)
-        self.dropout = nn.Dropout(config.hidden_dropout_prob)
-        self.classifier = nn.Linear(config.hidden_size, self.num_labels)
+        self.bert = AutoModel.from_pretrained(config["pretrained_model_name"])
+        self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
+        self.classifier = nn.Linear(self.config.hidden_size, self.num_labels)
 
         self.init_weights()
 
@@ -46,24 +47,8 @@ class BertForClassification(BertPreTrainedModel):
             input_ids=input_ids,
             attention_mask=attention_mask
         )
-
         last_hidden_state = outputs[0]  # (batch_size, seq_len, 768)
-
         last_hidden_state = self.dropout(last_hidden_state)
-        logits = self.classifier(last_hidden_state)  # (batch_size, seq_len, num_labels)
-        outputs = (logits, ) + outputs[2:]
 
-        return outputs  # logits, (hidden_states), (attentions)
-
-
-if __name__ == "__main__":
-    from config import Config
-
-    _config = Config("../config.json")
-    model = BertForClassification.from_pretrained(
-        _config["pretrained_model_name"],
-        num_labels=_config["num_labels"],
-        output_attentions=False,
-        output_hidden_states=False,
-    )
-    print(model)
+        output = self.classifier(last_hidden_state)  # (batch_size, seq_len, num_labels)
+        return (output, ) + outputs[2:]  # logits, (hidden_states), (attentions)
