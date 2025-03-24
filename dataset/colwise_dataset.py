@@ -1,12 +1,10 @@
-from itertools import chain
-from typing import Optional
-
 import pandas as pd
 import torch
-from tqdm import tqdm
 
-from config import Config
-from transformers import BertTokenizer, PreTrainedTokenizerBase
+from itertools import chain
+from typing import Optional
+from tqdm import tqdm
+from transformers import PreTrainedTokenizerBase
 
 from dataset.dataset import TableDataset
 
@@ -25,8 +23,8 @@ class ColWiseDataset(TableDataset):
         num_rows: amount of how many rows to read per .csv file, if None read all rows.
     """
 
-    def __init__(self, data_dir: str, tokenizer: PreTrainedTokenizerBase, num_rows: Optional[int], file_name):
-        super().__init__(data_dir, tokenizer, num_rows, file_name)
+    def __init__(self, data_dir: str, tokenizer: PreTrainedTokenizerBase, num_rows: Optional[int]):
+        super().__init__(data_dir, tokenizer, num_rows)
 
     def _create_dataset(self, df: pd.DataFrame, tokenizer: PreTrainedTokenizerBase) -> pd.DataFrame:
         """Tokenize columns data.
@@ -81,14 +79,3 @@ class ColWiseDataset(TableDataset):
             data_list,
             columns=["table_id", "n_cols", "data", "labels"]
         )
-
-
-if __name__ == "__main__":
-    config = Config(config_path="../config.json")
-
-    t = ColWiseDataset(
-        data_dir="../" + config["dataset"]["data_dir"] + config["dataset"]["train_path"],
-        tokenizer=BertTokenizer.from_pretrained("bert-base-multilingual-uncased"),
-        num_rows=None,
-    )
-    print(t.df["data"].apply(lambda x: len(x)).max())
