@@ -3,12 +3,12 @@ from pathlib import Path
 import pandas as pd
 import torch
 
-from transformers import BertTokenizer, BertConfig
+from transformers import BertTokenizer
 
 from config import Config
-from model.model import BertForClassification
-from utils.functions import prepare_device, set_rs, get_token_logits, get_map_location, filter_model_state_dict, \
-    get_dataset_type
+from model.model import RuTaBERT
+from model.clmodel import RuTaBERTCoLeM
+from utils.functions import *
 
 
 class Inferencer:
@@ -35,9 +35,10 @@ class Inferencer:
             file_name=None
         )
 
-        self.model = BertForClassification(
-            BertConfig.from_pretrained(self.config["pretrained_model_name"], num_labels=self.config["num_labels"])
-        )
+        if self.config["use_colem"]:
+            self.model = RuTaBERTCoLeM(self.config)
+        else:
+            self.model = RuTaBERT(self.config)
 
         checkpoint = torch.load(
             self.config["checkpoint_dir"] + self.config["inference_model_name"],
@@ -154,8 +155,3 @@ class Inferencer:
             columns=["table_id", "column_id", "label_id", "label", "column_data"]
         )
         return preprocessed_table
-
-
-if __name__ == "__main__":
-    inference = Inferencer()
-    inference.inference()

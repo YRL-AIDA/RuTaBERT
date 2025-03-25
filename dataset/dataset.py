@@ -33,28 +33,14 @@ class TableDataset(Dataset):
             data_dir: str,
             tokenizer: PreTrainedTokenizerBase,
             num_rows: Optional[int],
-            file_name=None,
             transform=None,
             target_transform=None,
     ):
         # Read dataset .csv files
-        if file_name:
-            df = pd.read_csv(
-                data_dir + file_name,
-                sep="|",
-                engine="python",
-                quotechar='"',
-                on_bad_lines="warn",
-                nrows=num_rows if num_rows is not None else None
-            )
-        else:
-            df = self.read_multiple_csv(data_dir, num_rows)
+        df = self.read_multiple_csv(data_dir, num_rows)
 
         # Tokenize dataset with BERT tokenizer
-        self.df = self._create_dataset(
-            df,
-            tokenizer
-        )
+        self.df = self._create_dataset(df, tokenizer)
 
         self.transform = transform
         self.target_transform = target_transform
@@ -84,27 +70,22 @@ class TableDataset(Dataset):
         """
 
         df_list = []
-        num_chunks = len(glob.glob(data_dir + "data_*.csv"))
-        if num_chunks > 1:
-            for i in range(num_chunks):
-                df = pd.read_csv(
-                    data_dir + f"data_{i}.csv",
-                    sep="|",
-                    engine="python",
-                    quotechar='"',
-                    on_bad_lines="warn",
-                    nrows=num_rows if num_rows is not None else None
-                )
-                df_list.append(df)
-            return pd.concat(df_list, axis=0)
-        return pd.read_csv(
-            data_dir + "data.csv",
-            sep="|",
-            engine="python",
-            quotechar='"',
-            on_bad_lines="warn",
-            nrows=num_rows if num_rows is not None else None
-        )
+        chunks = glob.glob(data_dir + "*.csv")
+        assert len(chunks) > 0
+
+        for filename in chunks:
+            df = pd.read_csv(
+                filepath_or_buffer=filename,
+                sep="|",
+                engine="python",
+                quotechar='"',
+                on_bad_lines="warn",
+                nrows=num_rows
+            )
+            df_list.append(df)
+        df = pd.concat(df_list, axis=0)
+        df.reset_index(inplace=True, drop=True)
+        return df
 
     def _create_dataset(self, df: pd.DataFrame, tokenizer: PreTrainedTokenizerBase) -> pd.DataFrame:
         """Tokenize columns data.

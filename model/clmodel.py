@@ -1,26 +1,29 @@
-from transformers import BertPreTrainedModel
-from transformers import AutoConfig, AutoModel
-
 import torch.nn as nn
 
+from huggingface_hub import PyTorchModelHubMixin
 
-class RuTaBERT(BertPreTrainedModel):
-    """BERT model for `Column Table Annotation` task.
+from config import Config
+from model.colem import CoLeM
+
+
+class RuTaBERTCoLeM(nn.Module, PyTorchModelHubMixin):
+    """RuTaBERT model, integrated with CoLeM (Contrastive Learning-based tabular Model).
+
+    This model uses CoLeM as an encoder (in vanilla version was pretrained HF BERT). CoLem was
+    trained in contrastive settings on unlabelled tabular data (The main language is Russian).
 
     Args:
-        config: Model configuration class with all the parameters of the BERT model.
+        Config: RuTaBERT application config.
     """
 
-    def __init__(self, config):
-        super().__init__(AutoConfig.from_pretrained(config["pretrained_model_name"]))
+    def __init__(self, config: Config):
+        super().__init__()
 
         self.num_labels = config["num_labels"]
 
-        self.bert = AutoModel.from_pretrained(config["pretrained_model_name"])
-        self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
-        self.classifier = nn.Linear(self.config.hidden_size, self.num_labels)
-
-        self.init_weights()
+        self.bert = CoLeM.from_pretrained(config["colem"]["pretrained_model_name"])
+        self.dropout = nn.Dropout()
+        self.classifier = nn.Linear(self.bert.config.hidden_size, self.num_labels)
 
     def forward(self, input_ids=None, attention_mask=None) -> tuple:
         """Forward pass.
@@ -47,8 +50,8 @@ class RuTaBERT(BertPreTrainedModel):
             input_ids=input_ids,
             attention_mask=attention_mask
         )
-        last_hidden_state = outputs[0]  # (batch_size, seq_len, 768)
-        last_hidden_state = self.dropout(last_hidden_state)
+        encoder_last_hidden_state = outputs[0]  # (batch_size, seq_len, hidden_size)
 
-        output = self.classifier(last_hidden_state)  # (batch_size, seq_len, num_labels)
-        return (output, ) + outputs[2:]  # logits, (hidden_states), (attentions)
+        last_hidden_state = self.dropout(encoder_last_hidden_state)
+        logits = self.classifier(last_hidden_state)  # (batch_size, seq_len, num_labels)
+        return (logits, ) + outputs[2:]  # logits, (hidden_states), (attentions)  

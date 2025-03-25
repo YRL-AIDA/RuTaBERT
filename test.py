@@ -1,15 +1,15 @@
 import torch
 
+from transformers import BertTokenizer
+
 from config import Config
 from dataset.dataloader import CtaDataLoader
 from logs.logger import Logger
+from model.clmodel import RuTaBERTCoLeM
+from model.model import RuTaBERT
 from model.metric import multiple_f1_score
-from model.model import BertForClassification
+from utils.functions import *
 
-from transformers import BertTokenizer, BertConfig
-
-from utils.functions import collate, prepare_device, get_token_logits, set_rs, get_map_location, \
-    filter_model_state_dict, get_dataset_type
 
 
 def test(
@@ -72,9 +72,10 @@ if __name__ == "__main__":
         collate_fn=collate
     )
 
-    model = BertForClassification(
-        BertConfig.from_pretrained(conf["pretrained_model_name"], num_labels=conf["num_labels"])
-    )
+    if conf["use_colem"]:
+        model = RuTaBERTCoLeM(conf)
+    else:
+        model = RuTaBERT(conf)
 
     checkpoint = torch.load(conf["checkpoint_dir"] + conf["checkpoint_name"], map_location=get_map_location())
 
