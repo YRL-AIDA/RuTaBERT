@@ -7,6 +7,7 @@ from transformers import BertTokenizer
 
 from config import Config
 from model.model import RuTaBERT
+from model.clmodel import RuTaBERTCoLeM
 from utils.functions import *
 
 
@@ -34,7 +35,10 @@ class Inferencer:
             file_name=None
         )
 
-        self.model = RuTaBERT(self.config)
+        if self.config["use_colem"]:
+            self.model = RuTaBERTCoLeM(self.config)
+        else:
+            self.model = RuTaBERT(self.config)
 
         checkpoint = torch.load(
             self.config["checkpoint_dir"] + self.config["inference_model_name"],

@@ -5,8 +5,9 @@ from transformers import BertTokenizer
 from config import Config
 from dataset.dataloader import CtaDataLoader
 from logs.logger import Logger
-from model.metric import multiple_f1_score
+from model.clmodel import RuTaBERTCoLeM
 from model.model import RuTaBERT
+from model.metric import multiple_f1_score
 from utils.functions import *
 
 
@@ -71,7 +72,10 @@ if __name__ == "__main__":
         collate_fn=collate
     )
 
-    model = RuTaBERT(conf)
+    if conf["use_colem"]:
+        model = RuTaBERTCoLeM(conf)
+    else:
+        model = RuTaBERT(conf)
 
     checkpoint = torch.load(conf["checkpoint_dir"] + conf["checkpoint_name"], map_location=get_map_location())
 

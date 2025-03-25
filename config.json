@@ -25,5 +25,10 @@
     "data_dir": "data/",
     "train_path": "train/",
     "test_path": "test/"
+  },
+  "use_transfer_learning": false,
+  "use_colem": false,
+  "colem": {
+    "pretrained_model_name": "sti-team/colem-base-cased"
   }
 }

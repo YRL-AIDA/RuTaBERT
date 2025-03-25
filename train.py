@@ -7,6 +7,7 @@ from logs.logger import Logger
 
 from model.metric import multiple_f1_score
 from model.model import RuTaBERT
+from model.clmodel import RuTaBERTCoLeM
 
 from transformers import BertTokenizer, get_linear_schedule_with_warmup
 
@@ -36,7 +37,13 @@ def train(config: Config):
     )
     valid_dataloader = train_dataloader.get_valid_dataloader()
 
-    model = RuTaBERT(config)
+    if config["use_colem"]:
+        model = RuTaBERTCoLeM(config)
+    else:
+        model = RuTaBERT(config)
+    
+    if config["use_transfer_learning"]:
+        model.bert.requires_grad_(False)
 
     device, device_ids = prepare_device(config["num_gpu"])
     model = model.to(device)
