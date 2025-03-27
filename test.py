@@ -1,6 +1,6 @@
 import torch
 
-from transformers import BertTokenizer
+from transformers import BertTokenizer, DistilBertTokenizer
 
 from config import Config
 from dataset.dataloader import CtaDataLoader
@@ -57,7 +57,10 @@ def test(
 if __name__ == "__main__":
     conf = Config(config_path="config.json")
 
-    tokenizer = BertTokenizer.from_pretrained(conf["pretrained_model_name"])
+    if conf["use_colem"]:
+        tokenizer = DistilBertTokenizer.from_pretrained(conf["colem"]["pretrained_model_name"])
+    else:
+        tokenizer = BertTokenizer.from_pretrained(conf["pretrained_model_name"])
 
     dataset_type = get_dataset_type(conf["table_serialization_type"])
     dataset = dataset_type(
