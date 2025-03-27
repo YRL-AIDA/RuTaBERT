@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 import torch
 
-from transformers import BertTokenizer
+from transformers import BertTokenizer, DistilBertTokenizer
 
 from config import Config
 from model.model import RuTaBERT
@@ -22,7 +22,10 @@ class Inferencer:
         self.config = Config(config_path="config.json")
         self.directory = self.config["inference_dir"]
 
-        self.tokenizer = BertTokenizer.from_pretrained(self.config["pretrained_model_name"])
+        if self.config["use_colem"]:
+            self.tokenizer = DistilBertTokenizer.from_pretrained(self.config["colem"]["pretrained_model_name"])
+        else:
+            self.tokenizer = BertTokenizer.from_pretrained(self.config["pretrained_model_name"])
 
         dataset_type = get_dataset_type(self.config["table_serialization_type"])
 

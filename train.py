@@ -9,7 +9,7 @@ from model.metric import multiple_f1_score
 from model.model import RuTaBERT
 from model.clmodel import RuTaBERTCoLeM
 
-from transformers import BertTokenizer, get_linear_schedule_with_warmup
+from transformers import DistilBertTokenizer, BertTokenizer, get_linear_schedule_with_warmup
 
 from config import Config
 from trainer.trainer import Trainer
@@ -20,7 +20,10 @@ def train(config: Config):
     set_rs(config["random_seed"])
 
     # TODO: assert config variables assigned and correct
-    tokenizer = BertTokenizer.from_pretrained(config["pretrained_model_name"])
+    if config["use_colem"]:
+        tokenizer = DistilBertTokenizer.from_pretrained(config["colem"]["pretrained_model_name"])
+    else:
+        tokenizer = BertTokenizer.from_pretrained(config["pretrained_model_name"])
 
     dataset_type = get_dataset_type(config["table_serialization_type"])
     dataset = dataset_type(
